@@ -10,11 +10,12 @@
 
 using namespace bb::cascades;
 
-DownloadItem::DownloadItem( QUrl url, download_range low, download_range high, QObject *parent ):
+DownloadItem::DownloadItem( QUrl url, qint64 low, qint64 high, QObject *parent ):
         QObject( parent ), url_( url ), low_( low ), high_( high ),
         thread_number_( 0 ), number_of_bytes_written( 0 ),
         file_( NULL ), reply_( NULL )
 {
+
 }
 
 DownloadItem::~DownloadItem()
@@ -25,13 +26,16 @@ DownloadItem::~DownloadItem()
 QNetworkAccessManager DownloadItem::network_manager;
 QReadWriteLock        DownloadItem::rw_lock;
 
-void DownloadItem::startDownload()
+void DownloadItem::startDownload( )
 {
     QNetworkRequest request( url_ );
     request.setRawHeader( "USER-AGENT", "Mozilla Firefox" );
+
     QByteArray range = QByteArray("bytes=") + QByteArray::number( low_, 0xA ) + QByteArray( "-" )
                     + QByteArray::number( high_, 0xA );
-    request.setRawHeader( "Range", range );
+    if( use_range ){
+        request.setRawHeader( "Range", range );
+    }
 
     reply_ = DownloadItem::GetNetworkManager()->get( request );
     QObject::connect( reply_, SIGNAL( readyRead() ), this, SLOT( readyReadHandler() ) );
@@ -44,12 +48,31 @@ void DownloadItem::readyReadHandler()
 {
     reply_ = qobject_cast<QNetworkReply*>( sender() );
     if( reply_->error() == QNetworkReply::NoError ){
-        rw_lock.lockForWrite();
-        file_->seek( number_of_bytes_written + low_ );
-        qint64 size_of_buffer = file_->write( reply_->readAll() );
-        number_of_bytes_written += size_of_buffer;
-        rw_lock.unlock();
+        flush();
     }
+}
+
+void DownloadItem::flush()
+{
+    rw_lock.lockForWrite();
+    file_->seek( number_of_bytes_written + low_ );
+    qint64 size_of_buffer = file_->write( reply_->readAll() );
+    number_of_bytes_written += size_of_buffer;
+    qDebug() << "Thread " << thread_number_ << ", written " << number_of_bytes_written;
+    rw_lock.unlock();
+}
+
+void DownloadItem::stopDownload()
+{
+    reply_->abort();
+
+    flush();
+    QObject::disconnect( reply_, SIGNAL( readyRead() ), this, SLOT( readyReadHandler() ) );
+    QObject::disconnect( reply_, SIGNAL( finished() ), this, SLOT( finishedHandler()) );
+    QObject::disconnect( reply_, SIGNAL( downloadProgress(qint64,qint64)),
+            this, SLOT( downloadProgressHandler( qint64, qint64 ) ) );
+    reply_->deleteLater();
+    emit stopped( thread_number_ );
 }
 
 void DownloadItem::finishedHandler()

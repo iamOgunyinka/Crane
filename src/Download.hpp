@@ -15,8 +15,6 @@
 #include <QDate>
 #include <QReadWriteLock>
 
-typedef unsigned int download_range;
-
 class DownloadItem : public QObject
 {
     Q_OBJECT
@@ -24,27 +22,31 @@ class DownloadItem : public QObject
 private:
 
     QUrl           url_;
-    download_range low_;
-    download_range high_;
+    qint64         low_;
+    qint64         high_;
+    qint64         number_of_bytes_written;
+    qint64         use_range;
     unsigned int   thread_number_;
-    unsigned int   number_of_bytes_written;
     QFile          *file_;
     QNetworkReply  *reply_;
 
-
+    void flush();
 public slots:
     void finishedHandler();
     void readyReadHandler();
     void downloadProgressHandler( qint64, qint64 );
     void startDownload();
+    void stopDownload();
 signals:
     void finished( unsigned int );
+    void stopped( unsigned int );
     void error( QString );
 public:
-    DownloadItem( QUrl url, download_range low, download_range high, QObject *parent = NULL );
+    DownloadItem( QUrl url, qint64 low, qint64 high, QObject *parent = NULL );
     ~DownloadItem();
     void setThreadNumber( unsigned int number ) { thread_number_ = number; }
     void setFile( QFile *file ){ file_ = file; }
+    void acceptRange( bool flag ){ use_range = flag; }
     QUrl url() const { return url_; }
 
     static QNetworkAccessManager* GetNetworkManager() { return &network_manager; }
@@ -63,6 +65,7 @@ public:
     QList<unsigned int> threads;
     unsigned int        size_in_bytes;
     unsigned int        accept_ranges;
+    unsigned int        byte_range_specified;
     QDateTime           time_started;
     QDateTime           time_completed;
 public slots:

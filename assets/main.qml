@@ -29,6 +29,7 @@ TabbedPane
     {
         id: homepageTab
         title: "Downloads"
+        imageSource: "asset:///images/home.png"
         NavigationPane
         {
             id: navPane
@@ -38,17 +39,17 @@ TabbedPane
             Page
             {
                 titleBar: TitleBar {
-                    title: "Merry Downloads"
+                    title: "Crane"
                     appearance: TitleBarAppearance.Default
                     kind: TitleBarKind.Default
                     acceptAction: ActionItem {
-                        title: "-"
+                        imageSource: "asset:///images/5_content_remove.png"
                         onTriggered: {
                             Application.minimize();
                         }
                     }
                     dismissAction: ActionItem {
-                        title: "+"
+                        imageSource: "asset:///images/5_content_new.png"
                         onTriggered: {
                             addNewDownload.show()
                         }
@@ -74,18 +75,23 @@ TabbedPane
                 actions: [
                     ActionItem {
                         title: "All"
+                        imageSource: "asset:///images/add.png"
                     },
                     ActionItem {
                         title: "Documents"
+                        imageSource: "asset:///images/doc.png"
                     },
                     ActionItem {
                         title: "Images"
+                        imageSource: "asset:///images/picture.png"
                     },
                     ActionItem {
                         title: "Music"
+                        imageSource: "asset:///images/music.png"
                     },
                     ActionItem {
                         title: "Video"
+                        imageSource: "asset:///images/video.png"
                     },
                     ActionItem {
                         title: "Programs"
@@ -95,6 +101,7 @@ TabbedPane
                     },
                     ActionItem {
                         title: "Others"
+                        imageSource: "asset:///images/other.png"
                     }
                 ]
                 Container {
@@ -123,7 +130,7 @@ TabbedPane
     {
         id: browserTab
         title: "Browser"
-        
+        imageSource: "asset:///images/add.png"
         NavigationPane
         {
             id: browserPane

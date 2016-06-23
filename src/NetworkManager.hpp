@@ -16,6 +16,7 @@
 #include <QDebug>
 
 #include "Download.hpp"
+#include "DownloadInfo.hpp"
 
 struct NetworkManager: public QObject
 {
@@ -23,6 +24,7 @@ struct NetworkManager: public QObject
 
 public slots:
     void headFinishedHandler();
+    void newDownloadStarted();
     void finishedHandler( QString );
     void errorHandler( QString );
     void errorHandler( QNetworkReply::NetworkError );
@@ -31,13 +33,17 @@ signals:
     void finished( QString );
 private:
     QMap<QString, DownloadComponent*>   active_download_list;
-    int                                 number_of_threads;
+    QList<QString>                      inactive_downloads;
+    int                                 max_number_of_threads;
+    int                                 max_number_of_downloads;
     QString                             download_directory;
 
     QUrl redirectUrl( QUrl const & possibleRedirectUrl, QUrl const & oldRedirectUrl) const;
-    void addNewUrlImpl( QUrl const & url );
+    void startDownloadImpl( DownloadComponent *download_component, int threads_to_use,
+            QList<Information::ThreadInfo> thread_info_list = QList<Information::ThreadInfo>() );
+    void addNewUrlImpl( QString const & url, QNetworkReply *response );
 public:
-    Q_INVOKABLE void addNewUrl( QString const & url, int threads, QString directory = QString() );
+    Q_INVOKABLE void addNewUrl( QString const & url, int threads, int download_limit, QString directory = QString() );
 public:
     NetworkManager( QObject *parent = NULL );
     virtual ~NetworkManager();

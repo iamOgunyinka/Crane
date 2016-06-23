@@ -36,6 +36,22 @@ simulator {
 
 config_pri_assets {
     OTHER_FILES += \
+        $$quote($$BASEDIR/assets/images/5_content_new.png) \
+        $$quote($$BASEDIR/assets/images/5_content_remove.png) \
+        $$quote($$BASEDIR/assets/images/add.png) \
+        $$quote($$BASEDIR/assets/images/close.png) \
+        $$quote($$BASEDIR/assets/images/delete.png) \
+        $$quote($$BASEDIR/assets/images/doc.png) \
+        $$quote($$BASEDIR/assets/images/home.png) \
+        $$quote($$BASEDIR/assets/images/music.png) \
+        $$quote($$BASEDIR/assets/images/other.png) \
+        $$quote($$BASEDIR/assets/images/pause.png) \
+        $$quote($$BASEDIR/assets/images/picture.png) \
+        $$quote($$BASEDIR/assets/images/play.png) \
+        $$quote($$BASEDIR/assets/images/settings.png) \
+        $$quote($$BASEDIR/assets/images/stop.png) \
+        $$quote($$BASEDIR/assets/images/stop_2.png) \
+        $$quote($$BASEDIR/assets/images/video.png) \
         $$quote($$BASEDIR/assets/main.qml) \
         $$quote($$BASEDIR/assets/settings.qml)
 }
@@ -43,14 +59,15 @@ config_pri_assets {
 config_pri_source_group1 {
     SOURCES += \
         $$quote($$BASEDIR/src/Download.cpp) \
+        $$quote($$BASEDIR/src/DownloadInfo.cpp) \
         $$quote($$BASEDIR/src/NetworkManager.cpp) \
         $$quote($$BASEDIR/src/Settings.cpp) \
-        $$quote($$BASEDIR/src/Settings_test.cpp) \
         $$quote($$BASEDIR/src/applicationui.cpp) \
         $$quote($$BASEDIR/src/main.cpp)
 
     HEADERS += \
         $$quote($$BASEDIR/src/Download.hpp) \
+        $$quote($$BASEDIR/src/DownloadInfo.hpp) \
         $$quote($$BASEDIR/src/NetworkManager.hpp) \
         $$quote($$BASEDIR/src/Settings.hpp) \
         $$quote($$BASEDIR/src/applicationui.hpp)

@@ -34,22 +34,16 @@ void Settings::readSettings()
         download_directory = new char[download_directory_len + 1];
         fread( download_directory, download_directory_len, 1, file );
         download_directory[download_directory_len] = '\0';
-        std::cout << download_directory << std::endl;
 
         fread( &max_download, sizeof( max_download ), 1, file );
-        std::cout << max_download << std::endl;
 
         fread( &max_thread, sizeof( max_thread ), 1, file );
-        std::cout << max_thread << std::endl;
 
         fread( &app_notify, sizeof( app_notify ), 1, file );
-        std::cout << app_notify << std::endl;
 
         fread( &pause_on_error, sizeof( pause_on_error ), 1, file );
-        std::cout << pause_on_error << std::endl;
         fclose( file );
     } else {
-        std::cerr << "Unable to read file";
         emit error( "Unable to read file" );
     }
 }
