@@ -63,7 +63,7 @@ TabbedPane
                         onFinished: {
                             switch( value ){
                                 case SystemUiResult.ConfirmButtonSelection :
-                                    network.addNewUrl( addNewDownload.inputFieldTextEntry(), 3, 
+                                    network.addNewUrl( addNewDownload.inputFieldTextEntry(), 3, 3,
                                     "/accounts/1000/shared/downloads" );
                                     break;
                                 default :

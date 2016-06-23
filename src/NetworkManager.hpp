@@ -39,7 +39,7 @@ private:
     QString                             download_directory;
 
     QUrl redirectUrl( QUrl const & possibleRedirectUrl, QUrl const & oldRedirectUrl) const;
-    void startDownloadImpl( DownloadComponent *download_component, int threads_to_use,
+    void startDownloadImpl( DownloadComponent *download_component, unsigned int threads_to_use,
             QList<Information::ThreadInfo> thread_info_list = QList<Information::ThreadInfo>() );
     void addNewUrlImpl( QString const & url, QNetworkReply *response );
 public:

@@ -13,7 +13,7 @@
 #include <QtNetwork/QNetworkReply>
 #include <QFile>
 #include <QDate>
-#include <QReadWriteLock>
+#include <QMutex>
 
 class DownloadItem : public QObject
 {
@@ -44,6 +44,7 @@ signals:
 public:
     DownloadItem( QUrl url, qint64 low, qint64 high, QObject *parent = NULL );
     ~DownloadItem();
+
     void setThreadNumber( unsigned int number ) { thread_number_ = number; }
     void setFile( QFile *file ){ file_ = file; }
     void acceptRange( bool flag ){ use_range = flag; }
@@ -51,7 +52,7 @@ public:
 
     static QNetworkAccessManager* GetNetworkManager() { return &network_manager; }
     static QNetworkAccessManager network_manager;
-    static QReadWriteLock rw_lock;
+    static QMutex mutex;
 };
 
 class DownloadComponent: public QObject
@@ -64,6 +65,7 @@ public:
     QList<QThread*>     download_threads;
     QList<unsigned int> threads;
     unsigned int        size_in_bytes;
+    unsigned int        use_lock; // if we're using a single thread, there's no need for synchronization, so no locking.
     unsigned int        accept_ranges;
     unsigned int        byte_range_specified;
     QDateTime           time_started;

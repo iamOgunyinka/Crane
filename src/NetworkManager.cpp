@@ -43,7 +43,13 @@ QUrl NetworkManager::redirectUrl( QUrl const & possibleRedirectUrl, QUrl const &
 
 void NetworkManager::addNewUrl( QString const & address, int threads_to_use, int download_limit, QString location )
 {
-    QNetworkRequest request;
+	if( active_download_list.size() == max_number_of_downloads ){
+        inactive_downloads.push_back( address );
+        qDebug() << "New download queued up";
+        return;
+    }
+
+	QNetworkRequest request;
     request.setUrl( QUrl( address ) );
     request.setRawHeader( "USER-AGENT", "Mozilla Firefox" );
 
@@ -87,12 +93,6 @@ void NetworkManager::headFinishedHandler()
 
 void NetworkManager::addNewUrlImpl( QString const & url, QNetworkReply *response )
 {
-    if( active_download_list.size() == max_number_of_downloads ){
-        inactive_downloads.push_back( url );
-        qDebug() << "New download queued up";
-        return;
-    }
-
     DownloadComponent *new_download = NULL;
 
     if( active_download_list.contains( url ) ){
@@ -178,23 +178,29 @@ void NetworkManager::addNewUrlImpl( QString const & url, QNetworkReply *response
     startDownloadImpl( new_download, threads_to_use );
 }
 
-void NetworkManager::startDownloadImpl( DownloadComponent *new_download, int threads_to_use,
+void NetworkManager::startDownloadImpl( DownloadComponent *new_download, unsigned int threads_to_use,
         QList<Information::ThreadInfo> thread_info_list )
 {
-
     int increment = new_download->size_in_bytes == 0 ? 0 : ( new_download->size_in_bytes / threads_to_use );
 
     unsigned int byte_begin = 0, byte_end = 0;
     bool thread_list_empty = thread_info_list.isEmpty();
+
+//    qDebug() << "Using " << threads_to_use << " threads";
+//    qDebug() << "File size: " << new_download->size_in_bytes;
+
+    new_download->use_lock = ! ( threads_to_use == 1 );
+
     for( unsigned int i = 1; i <= threads_to_use; ++i )
     {
-        QThread *new_thread = new QThread( this );
+        QThread *new_thread = new QThread();
         DownloadItem *download = NULL;
         // mark all the threads as "not finished"
         new_download->threads.append( 0 );
 
         if( thread_list_empty ){
             if( i == threads_to_use ){
+				// last/only thread to spawn? Download file to the end OR set no limit at all if size is unknown
                 download = new DownloadItem( new_download->url, byte_begin, new_download->size_in_bytes, new_thread );
             } else {
                 byte_end += increment;
@@ -203,7 +209,11 @@ void NetworkManager::startDownloadImpl( DownloadComponent *new_download, int thr
             byte_begin = byte_end + 1;
             download->setThreadNumber( i );
             download->setFile( new_download->file );
-            download->acceptRange( false );
+            if( threads_to_use == 1 ){
+                download->acceptRange( false );
+            } else {
+                download->acceptRange( true );
+            }
         } else {
             Information::ThreadInfo thread_info = thread_info_list.at( i - 1 );
             download = new DownloadItem( new_download->url, thread_info.thread_low_byte,
@@ -226,10 +236,12 @@ void NetworkManager::startDownloadImpl( DownloadComponent *new_download, int thr
         new_download->download_threads.push_back( new_thread );
     }
     qDebug() << "Download started";
+
     active_download_list.insert( new_download->url.toString(), new_download );
     QObject::connect( new_download, SIGNAL( finished( QString ) ), this, SLOT( finishedHandler( QString ) ) );
     QObject::connect( new_download, SIGNAL( error( QString ) ), this, SLOT( errorHandler( QString ) ) );
 }
+
 void NetworkManager::errorHandler( QString what )
 {
     qDebug() << "Error: " << what;

@@ -12,10 +12,10 @@ using namespace bb::cascades;
 
 DownloadItem::DownloadItem( QUrl url, qint64 low, qint64 high, QObject *parent ):
         QObject( parent ), url_( url ), low_( low ), high_( high ),
-        thread_number_( 0 ), number_of_bytes_written( 0 ),
+        number_of_bytes_written( low_ ), use_range( 0 ), thread_number_( 0 ),
         file_( NULL ), reply_( NULL )
 {
-
+    qDebug() << "Range speicified [ " << low_ << " - " << high_ << " ]";
 }
 
 DownloadItem::~DownloadItem()
@@ -24,7 +24,7 @@ DownloadItem::~DownloadItem()
 }
 
 QNetworkAccessManager DownloadItem::network_manager;
-QReadWriteLock        DownloadItem::rw_lock;
+QMutex                DownloadItem::mutex;
 
 void DownloadItem::startDownload( )
 {
@@ -54,12 +54,10 @@ void DownloadItem::readyReadHandler()
 
 void DownloadItem::flush()
 {
-    rw_lock.lockForWrite();
-    file_->seek( number_of_bytes_written + low_ );
+    QMutexLocker lock( &mutex );
+    file_->seek( number_of_bytes_written );
     qint64 size_of_buffer = file_->write( reply_->readAll() );
     number_of_bytes_written += size_of_buffer;
-    qDebug() << "Thread " << thread_number_ << ", written " << number_of_bytes_written;
-    rw_lock.unlock();
 }
 
 void DownloadItem::stopDownload()
@@ -93,7 +91,7 @@ void DownloadItem::downloadProgressHandler( qint64, qint64 )
 }
 
 DownloadComponent::DownloadComponent( QObject *parent ): QObject( parent ),
-        file( NULL ), size_in_bytes( 0 ), accept_ranges( 0 )
+        file( NULL ), size_in_bytes( 0 ), accept_ranges( 0 ), byte_range_specified( 0 )
 {
 }
 
