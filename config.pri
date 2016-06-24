@@ -58,17 +58,19 @@ config_pri_assets {
 
 config_pri_source_group1 {
     SOURCES += \
+        $$quote($$BASEDIR/src/CraneDataModel.cpp) \
         $$quote($$BASEDIR/src/Download.cpp) \
         $$quote($$BASEDIR/src/DownloadInfo.cpp) \
-        $$quote($$BASEDIR/src/NetworkManager.cpp) \
+        $$quote($$BASEDIR/src/DownloadManager.cpp) \
         $$quote($$BASEDIR/src/Settings.cpp) \
         $$quote($$BASEDIR/src/applicationui.cpp) \
         $$quote($$BASEDIR/src/main.cpp)
 
     HEADERS += \
+        $$quote($$BASEDIR/src/CraneDataModel.hpp) \
         $$quote($$BASEDIR/src/Download.hpp) \
         $$quote($$BASEDIR/src/DownloadInfo.hpp) \
-        $$quote($$BASEDIR/src/NetworkManager.hpp) \
+        $$quote($$BASEDIR/src/DownloadManager.hpp) \
         $$quote($$BASEDIR/src/Settings.hpp) \
         $$quote($$BASEDIR/src/applicationui.hpp)
 }

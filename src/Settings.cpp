@@ -77,7 +77,6 @@ void Settings::writeSettings()
 
 Settings::~Settings()
 {
-    writeSettings();
     if( download_directory != NULL ) delete[] download_directory;
 }
 
@@ -87,6 +86,7 @@ void Settings::setMaxDownload( int m )
     if( max_download != m ){
         max_download = m;
         emit maxDownloadChanged( m );
+        writeSettings();
     }
 }
 
@@ -95,6 +95,7 @@ void Settings::setMaxThread( int t )
     if( max_thread != t ){
         max_thread = t;
         emit maxThreadChanged( t );
+        writeSettings();
     }
 }
 
@@ -125,5 +126,6 @@ void Settings::setNewLocation( QString loc )
         download_directory[download_directory_len] = '\0';
 
         emit downloadLocationChanged( loc );
+        writeSettings();
     }
 }

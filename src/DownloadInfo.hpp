@@ -55,9 +55,11 @@ private:
 public slots:
     void readDownloadSettingsFile();
     void writeDownloadSettingsFile();
+
 signals:
     void finished();
     void error( QString );
+    void informationUpdated();
 };
 
 #endif /* DOWNLOADINFO_H_ */

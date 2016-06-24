@@ -2,7 +2,14 @@ import bb.cascades 1.2
 import bb.cascades.pickers 1.0
 
 Page {
-    property variant some_settings;
+    id: settings_page
+    
+    property int number_of_threads;
+    property int number_of_downloads;
+    
+//    signal threadsChanged( int new_thread_number )
+//    signal downloadsChanged( int new_download_number )
+//    signal directoryChanged( string new_path )
     
     titleBar: TitleBar {
         kind: TitleBarKind.Default
@@ -33,6 +40,7 @@ Page {
                         locationLabel.text = new_location
                         
                         console.log( "New location is: ", new_location );
+//                        settings_page.directoryChanged( new_location )
                     }
                 }
             ]
@@ -91,7 +99,7 @@ Page {
                 onSelectedOptionChanged: {
                     downloadNumberLabel.text = "Numbers of Downloads( " + selectedOption.value + " )";
                     settings.max_download = selectedOption.value;
-                    console.log( "Number of downloads ", settings.max_download );
+//                    settings_page.downloadsChanged( selectedOption.value )
                 }
                 onCreationCompleted: {
                     switch ( settings.max_download ){
@@ -142,6 +150,7 @@ Page {
                 onSelectedOptionChanged: {
                     threadNumberLabel.text = "Numbers of thread per download( " + selectedOption.text + " )"
                     settings.max_thread = selectedOption.value
+//                    settings_page.threadsChanged( selectedOption.value )
                 }
                 onCreationCompleted: {
                     switch ( settings.max_thread ){

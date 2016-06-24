@@ -21,7 +21,8 @@
 #include <bb/cascades/AbstractPane>
 #include <bb/cascades/LocaleHandler>
 #include "Settings.hpp"
-#include "NetworkManager.hpp"
+
+#include "DownloadManager.hpp"
 
 using namespace bb::cascades;
 
@@ -47,9 +48,9 @@ ApplicationUI::ApplicationUI() :
     QmlDocument *qml = QmlDocument::create( "asset:///main.qml" ).parent(this);
 
     Settings *settings = new Settings( this );
-    NetworkManager *network = new NetworkManager( this );
+    CraneDownloader *download_manager = new CraneDownloader;
 
-    qml->setContextProperty( "network", network );
+    qml->setContextProperty( "download_manager", download_manager );
     qml->setContextProperty( "settings", settings );
     // Create root object for the UI
     AbstractPane *root = qml->createRootObject<AbstractPane>();

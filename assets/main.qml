@@ -1,10 +1,18 @@
 import bb.cascades 1.2
 import bb.system 1.2
+import bb.data 1.0
 
 TabbedPane
 {
-    property variant global_settings;
+    property int number_of_threads;
+    property int number_of_downloads;
+    property string downloads_directory;
     
+    onCreationCompleted: {
+        number_of_threads = settings.max_thread;
+        number_of_downloads = settings.max_download;
+        downloads_directory = settings.location
+    }
     id: root
     showTabsOnActionBar: true
     Menu.definition: MenuDefinition {
@@ -14,7 +22,6 @@ TabbedPane
         settingsAction: SettingsActionItem {
             onTriggered: {
                 var settings = settingsPage.createObject();
-                settings.some_settings = global_settings
                 navPane.push( settings )
             }
         }
@@ -34,7 +41,16 @@ TabbedPane
         {
             id: navPane
             onPopTransitionEnded: {
+                number_of_threads = settings.max_thread;
+                number_of_downloads = settings.max_download;
+                downloads_directory = settings.location
+
                 page.destroy()
+            }
+            function status( message )
+            {
+                system_toast.body = message
+                system_toast.show();
             }
             Page
             {
@@ -63,15 +79,22 @@ TabbedPane
                         onFinished: {
                             switch( value ){
                                 case SystemUiResult.ConfirmButtonSelection :
-                                    network.addNewUrl( addNewDownload.inputFieldTextEntry(), 3, 3,
-                                    "/accounts/1000/shared/downloads" );
+                                    download_manager.addNewUrl( addNewDownload.inputFieldTextEntry(), number_of_threads, 
+                                        number_of_downloads, downloads_directory );
                                     break;
                                 default :
                                     break;
                             }
                         }
+                    },
+                    SystemToast {
+                        id: system_toast
                     }
                 ]
+                onCreationCompleted: {
+                    download_manager.status.connect( navPane.status );
+                    download_manager.error.connect( navPane.status );
+                }
                 actions: [
                     ActionItem {
                         title: "All"
@@ -108,18 +131,54 @@ TabbedPane
                     topPadding: 20
                     rightPadding: 20
                     leftPadding: 20
-                    SegmentedControl
-                    {
-                        Option 
+                    Container {
+                        SegmentedControl
                         {
-                            id: queueOption
-                            text: "Queue"
+                            Option 
+                            {
+                                id: queueOption
+                                text: "Queue"
+                            }
+                            Option
+                            {
+                                id: finishedOption
+                                text: "Finished"
+                            }
                         }
-                        Option
-                        {
-                            id: finishedOption
-                            text: "Finished"
+                    }
+                    ListView {
+                        id: list_view
+                        
+                        dataModel: ArrayDataModel {
+                            id: data_model
                         }
+                        listItemComponents: [
+                            ListItemComponent {
+                                type: ""
+                                StandardListItem {
+                                    title: ListItemData
+                                    status: "Ogunyinka"
+                                    imageSource: "asset:///images/music.png"
+                                    contextActions: [
+                                        ActionSet {
+                                            DeleteActionItem {
+//                                                imageSource: "asset:///images/delete.png"
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                        onCreationCompleted: {
+                            var array = [ "Apple", "Pie", "Mango", "Banana" ]
+                            data_model.append( array );
+                            data_model.append( "Tomato" );
+                        }
+                        onTriggered: {
+                            list_view.clearSelection()
+                            list_view.toggleSelection(indexPath)
+                        }
+                        
                     }
                 }
             }
