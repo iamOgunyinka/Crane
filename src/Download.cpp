@@ -25,16 +25,22 @@ DownloadItem::~DownloadItem()
 QNetworkAccessManager DownloadItem::network_manager;
 QMutex                DownloadItem::mutex;
 
-void DownloadItem::startDownload( )
+void DownloadItem::startDownload()
 {
+    if( number_of_bytes_written_ >= high_ ){
+        emit finished( thread_number_ );
+        return;
+    }
+
     QNetworkRequest request( url_ );
     request.setRawHeader( "USER-AGENT", "Mozilla Firefox" );
 
     if( use_range_ ){
         QByteArray range = QByteArray("bytes=") + QByteArray::number( low_, 0xA ) + QByteArray( "-" )
-                            + QByteArray::number( high_, 0xA );
+                + QByteArray::number( high_, 0xA );
         request.setRawHeader( "Range", range );
     }
+
 
     reply_ = DownloadItem::GetNetworkManager()->get( request );
     QObject::connect( reply_, SIGNAL( readyRead() ), this, SLOT( readyReadHandler() ) );
@@ -53,6 +59,7 @@ void DownloadItem::readyReadHandler()
             flushImpl(); // flush directly, no locks.
         }
     }
+    emit status( thread_number_, number_of_bytes_written_ );
 }
 
 void DownloadItem::flushImpl()
@@ -99,7 +106,7 @@ void DownloadItem::downloadProgressHandler( qint64, qint64 )
 }
 
 DownloadComponent::DownloadComponent( QString address, QString directory, unsigned int number_of_threads, QObject *parent ):
-        QObject( parent ), old_url( QUrl( address ) ), new_url( old_url ),
+        QObject( parent ), old_url( address ), new_url( old_url ),
         file( NULL ), size_in_bytes( 0 ), accept_ranges( 0 ), byte_range_specified( 0 ),
         max_number_of_threads( number_of_threads ), download_directory( directory )
 {
@@ -108,8 +115,115 @@ DownloadComponent::DownloadComponent( QString address, QString directory, unsign
     }
 }
 
+DownloadComponent::~DownloadComponent()
+{
+    stopDownload( old_url );
+}
+
+Information *DownloadComponent::find( QString const & url )
+{
+    QMap<QString, QSharedPointer<Information> >::iterator download_info_iterator;
+    download_info_iterator = DownloadInfo::DownloadInfoMap().find( url );
+
+    return download_info_iterator != DownloadInfo::DownloadInfoMap().end() ?
+            download_info_iterator->data() : NULL;
+}
+
+void DownloadComponent::updateCreateDownloadInfo()
+{
+    Information *download_info = find( old_url );
+
+    bool data_stored_already = download_info != NULL;
+    if( data_stored_already ){
+        updateDownloadInfo( download_info );
+        return;
+    }
+    download_info = new Information;
+    download_info->info_header.old_url_length = old_url.length();
+    download_info->info_header.new_url_length = new_url.length();
+    download_info->info_header.filename_length = file->fileName().length();
+    download_info->info_header.time_started_length = time_started.toString().length();
+    download_info->info_header.time_ended_length = time_started.toString().length();
+    download_info->original_url = old_url;
+    download_info->redirected_url = new_url;
+    download_info->filename = file->fileName();
+    download_info->number_of_threads_used = 0;
+    download_info->accept_ranges = this->accept_ranges;
+    download_info->size_of_file_in_bytes = this->size_in_bytes;
+    download_info->time_started = this->time_started.toString();
+    download_info->time_stopped = this->time_completed.toString();
+
+    int threads_used = thread_data.size();
+
+    if( threads_used == 1 ){
+        download_info->number_of_threads_used = threads_used;
+        download_info->pthread_info = QSharedPointer<Information::ThreadInfo>( new Information::ThreadInfo );
+    } else {
+        Information::CustomDeleter deleter;
+        download_info->pthread_info = QSharedPointer<Information::ThreadInfo>( new Information::ThreadInfo[ threads_used ],
+                deleter );
+    }
+
+    for( int i = 0; i != threads_used; ++i ){
+        *( download_info->pthread_info.data() + i ) = this->thread_data[i].thread_info;
+    }
+    DownloadInfo::DownloadInfoMap().insert( old_url, QSharedPointer<Information>( download_info ) );
+}
+
+void DownloadComponent::updateThread( unsigned int thread_number, qint64 bytes_written )
+{
+    thread_data[thread_number-1].thread_info.bytes_written = bytes_written;
+    updateCreateDownloadInfo();
+}
+
+void DownloadComponent::updateDownloadInfo( Information *info, bool isDownloadCompleted )
+{
+    for( unsigned int i = 0; i != info->number_of_threads_used; ++i ){
+        *( info->pthread_info.data() + i ) = thread_data[i].thread_info;
+    }
+    if( isDownloadCompleted ){
+        info->download_completed = 1;
+        info->time_stopped = this->time_completed.toString();
+    }
+}
+
 void DownloadComponent::startDownload()
 {
+    if( DownloadInfo::DownloadInfoMap().contains( old_url ) ){
+        QSharedPointer<Information> download_information = DownloadInfo::DownloadInfoMap().value( old_url );
+
+        if( download_information->download_completed ){
+            emit finished( download_information->original_url );
+            return;
+        }
+
+        this->new_url = download_information->redirected_url;
+        this->old_url = download_information->original_url;
+        QString filename = download_information->filename;
+        this->file = new QFile( filename );
+
+        if( !( this->file->open( QIODevice::ReadWrite ) ) ){
+            emit error( this->file->errorString() );
+            delete this->file;
+            return;
+        }
+        this->accept_ranges = download_information->accept_ranges;
+        this->size_in_bytes = download_information->size_of_file_in_bytes;
+        this->byte_range_specified = 1;
+        unsigned int threads_to_use = download_information->number_of_threads_used;
+
+        QList<Information::ThreadInfo> list;
+        Information::ThreadInfo *pthread_info = NULL;
+
+        for( int i = 0; i != list.size(); ++i ){
+            pthread_info = download_information->pthread_info.data() + i;
+            list.append( *pthread_info );
+        }
+
+        startDownloadImpl( threads_to_use, list );
+        return;
+    }
+
     QNetworkRequest request;
     request.setUrl( new_url );
     request.setRawHeader( "USER-AGENT", "Mozilla Firefox" );
@@ -118,6 +232,21 @@ void DownloadComponent::startDownload()
 
     QObject::connect( reply, SIGNAL(finished()), this, SLOT( headFinishedHandler() ) );
     QObject::connect( reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(errorHandler(QNetworkReply::NetworkError)));
+}
+
+void DownloadComponent::stopDownload( QString address )
+{
+    if( address != old_url || address != new_url ){
+        return;
+    }
+    for( int i = 0; i != download_threads.size(); ++i ){
+        download_threads[i]->terminate();
+    }
+    download_threads.clear();
+    if( file ){
+        file->close();
+        delete file;
+    }
 }
 
 void DownloadComponent::headFinishedHandler()
@@ -133,20 +262,13 @@ void DownloadComponent::headFinishedHandler()
         // we have a redirection, no?
         if( redirected_to.isEmpty() )
         {
-            typedef QPair<QByteArray, QByteArray> HeaderPair;
-            QList<HeaderPair> header = response->rawHeaderPairs();
-            foreach( HeaderPair hp, header ){
-                qDebug() << hp.first << ": " << hp.second;
-            }
             addNewUrlImpl( response->url().toString(), response );
         } else {
-            new_url = QUrl( redirected_to );
-            qDebug() << "Redirecting to ..." << new_url.toString();
+            new_url = redirected_to.toString();
             startDownload();
         }
     } else {
         emit error( response->errorString() );
-        qDebug() << "Error: " << response->errorString();
     }
 }
 
@@ -167,59 +289,25 @@ void DownloadComponent::errorHandler( QNetworkReply::NetworkError what )
 
 void DownloadComponent::finishedHandler( unsigned int thread_number )
 {
-    Q_ASSERT( threads.size() == download_threads.size() );
-    threads[thread_number-1] = 1;
+    Q_ASSERT( thread_data.size() == download_threads.size() );
+    thread_data[thread_number-1].thread_completed = 1;
 
-    for( int i = 0; i != threads.size(); ++i ){
-        if( !threads.at( i ) ) return;
+    for( int i = 0; i != thread_data.size(); ++i ){
+        if( !thread_data.at( i ).thread_completed ) return;
     }
-    file->close();
-    delete file;
-//    qDebug() << old_url.toString() << " completed successfully.";
-    emit finished( old_url.toString() );
+    updateDownloadInfo( find( old_url ), true );
+    emit finished( old_url );
 }
 
 void DownloadComponent::errorHandler( QString message )
 {
-    qDebug() << "Error: " << message;
     emit error( message );
 }
 
 void DownloadComponent::addNewUrlImpl( QString const & url, QNetworkReply *response )
 {
-    if( DownloadInfo::DownloadInfoMap().contains( url ) ){
-        QSharedPointer<Information> download_information = DownloadInfo::DownloadInfoMap().value( url );
-        this->new_url = QUrl( download_information->url );
-        QString filename = DownloadComponent::GetFilename( this->new_url, download_directory );
-        this->file = new QFile( filename );
 
-        if( !( this->file->open( QIODevice::ReadWrite ) ) ){
-            emit error( this->file->errorString() );
-            delete this->file;
-            return;
-        }
-
-        this->accept_ranges = download_information->accept_ranges;
-        this->size_in_bytes = download_information->size_of_file_in_bytes;
-        this->byte_range_specified = 1;
-        unsigned int threads_to_use = download_information->number_of_threads_used;
-
-        QList<Information::ThreadInfo> list;
-        Information::ThreadInfo thread_info;
-        for( int i = 0; i != list.size(); ++i ){
-            Information::ThreadInfo *pthread_info = download_information->pthread_info.data() + i;
-            thread_info.thread_low_byte = pthread_info->thread_low_byte;
-            thread_info.thread_high_byte = pthread_info->thread_high_byte;
-            thread_info.thread_number = pthread_info->thread_number;
-
-            list.append( thread_info );
-        }
-
-        startDownloadImpl( threads_to_use, list );
-        return;
-    }
-
-    this->new_url = QUrl( url );
+    this->new_url = url;
     QString filename = DownloadComponent::GetFilename( this->new_url, download_directory );
 
     this->file = new QFile( filename );
@@ -263,23 +351,26 @@ void DownloadComponent::startDownloadImpl( unsigned int threads_to_use, QList<In
 {
     int increment = this->size_in_bytes == 0 ? 0 : ( this->size_in_bytes / threads_to_use );
 
-    unsigned int byte_begin = 0, byte_end = 0;
+    qint64 byte_begin = 0, byte_end = 0;
     bool thread_list_empty = thread_info_list.isEmpty();
+
+    this->thread_data.reserve( threads_to_use );
 
     for( unsigned int i = 1; i <= threads_to_use; ++i )
     {
         QThread *new_thread = new QThread( this );
         DownloadItem *download = NULL;
-        // mark all the threads as "not finished"
-        this->threads.append( 0 );
 
         if( thread_list_empty ){
+            // last/only thread to spawn? Download file to the end OR set no limit at all if size is unknown
             if( i == threads_to_use ){
-                // last/only thread to spawn? Download file to the end OR set no limit at all if size is unknown
-                download = new DownloadItem( this->new_url, byte_begin, this->size_in_bytes, new_thread );
+                // mark all the threads as "not finished"
+                thread_data.push_back( ThreadData{ Information::ThreadInfo{ byte_begin, size_in_bytes, byte_begin, i }, 0 } );
+                download = new DownloadItem( QUrl( this->new_url ), byte_begin, this->size_in_bytes, new_thread );
             } else {
                 byte_end += increment;
-                download = new DownloadItem( this->new_url, byte_begin, byte_end, new_thread );
+                thread_data.push_back( ThreadData{ Information::ThreadInfo{ byte_begin, byte_end, byte_begin, i }, 0 } );
+                download = new DownloadItem( QUrl( this->new_url ), byte_begin, byte_end, new_thread );
             }
             byte_begin = byte_end + 1;
             download->setThreadNumber( i );
@@ -302,17 +393,19 @@ void DownloadComponent::startDownloadImpl( unsigned int threads_to_use, QList<In
         }
 
         QObject::connect( new_thread, SIGNAL( started() ), download, SLOT( startDownload() ) );
+        QObject::connect( download, SIGNAL( status( unsigned int, qint64 )), this, SLOT( updateThread( unsigned int, qint64 )) );
         QObject::connect( download, SIGNAL( error( QString )), this, SLOT( errorHandler( QString ) ) );
         QObject::connect( download, SIGNAL( finished( unsigned int ) ), this,
                 SLOT( finishedHandler( unsigned int ) ) );
         QObject::connect( download, SIGNAL( error( QString )), new_thread, SLOT( quit() ) );
         QObject::connect( download, SIGNAL( finished( unsigned int ) ), new_thread, SLOT( quit() ) );
+        QObject::connect( new_thread, SIGNAL( terminated() ), download, SLOT( stopDownload() ) );
         QObject::connect( new_thread, SIGNAL( finished() ), new_thread, SLOT( deleteLater() ) );
 
         new_thread->start();
         this->download_threads.push_back( new_thread );
     }
-    emit downloadStarted( old_url.toString() );
+    emit downloadStarted( old_url );
 }
 
 QUrl DownloadComponent::redirectUrl( QUrl const & possibleRedirectUrl, QUrl const & oldRedirectUrl ) const
@@ -324,9 +417,9 @@ QUrl DownloadComponent::redirectUrl( QUrl const & possibleRedirectUrl, QUrl cons
     return redirectUrl;
 }
 
-QString DownloadComponent::GetFilename( QUrl const & url, QString const & directory )
+QString DownloadComponent::GetFilename( QString const & url, QString const & directory )
 {
-    QFileInfo fileInfo( url.toString() );
+    QFileInfo fileInfo( url );
     QString basename = fileInfo.fileName();
 
     if( basename.isEmpty() ){

@@ -32,8 +32,8 @@ signals:
 public:
     static QMap<QString, DownloadComponent*>   active_download_list;
     static QList<QString>                      inactive_downloads;
-    static unsigned int                        max_number_of_downloads;
-    static unsigned int                        max_number_of_threads;
+    static int                                 max_number_of_downloads;
+    static int                                 max_number_of_threads;
 public:
     DownloadManager( QObject *parent = NULL );
     virtual ~DownloadManager();
@@ -42,11 +42,15 @@ public:
 struct CraneDownloader : public QObject
 {
     Q_OBJECT
+public:
+	static QSharedPointer<DownloadManager> m_pDownloadManager;
 
+	static void addNewUrlWithManager( QString const & url, QString directory, DownloadManager *dm );
 public:
     Q_INVOKABLE static void addNewUrl( QString const & url, unsigned int threads, unsigned int download_limit,
                 QString directory = QString() );
     CraneDownloader();
+    ~CraneDownloader();
 signals:
     void error( QString );
     void status( QString );

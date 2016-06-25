@@ -22,7 +22,6 @@ class DownloadItem : public QObject
     Q_OBJECT
 
 private:
-
     QUrl           url_;
     qint64         low_;
     qint64         high_;
@@ -45,6 +44,7 @@ signals:
     void finished( unsigned int );
     void stopped( unsigned int );
     void error( QString );
+    void status( unsigned int, qint64 );
 public:
     DownloadItem( QUrl url, qint64 low, qint64 high, QObject *parent = NULL );
     ~DownloadItem();
@@ -64,13 +64,17 @@ class DownloadComponent: public QObject
 {
     Q_OBJECT
 
+    struct ThreadData {
+        Information::ThreadInfo thread_info;
+        unsigned int thread_completed;
+    };
 public:
-    QUrl                old_url;
-    QUrl                new_url;
+    QString             old_url;
+    QString             new_url;
     QFile               *file;
     QList<QThread*>     download_threads;
-    QList<unsigned int> threads;
-    unsigned int        size_in_bytes;
+    QList<ThreadData>   thread_data;
+    qint64              size_in_bytes;
     unsigned int        accept_ranges;
     unsigned int        byte_range_specified;
 
@@ -84,19 +88,24 @@ public slots:
     void errorHandler( QNetworkReply::NetworkError );
     void finishedHandler( unsigned int );
     void headFinishedHandler();
-
+    void updateThread( unsigned int, qint64 );
+    void updateDownloadInfo( Information *, bool isCompleted = false );
+    void updateCreateDownloadInfo();
     void startDownload();
+    void stopDownload( QString address );
 signals:
     void error( QString );
     void finished( QString );
     void downloadStarted( QString );
 public:
     DownloadComponent( QString address, QString directory, unsigned int no_of_threads, QObject *parent = NULL );
-    static QString GetFilename( QUrl const & url, QString const & parent_directory );
+    ~DownloadComponent();
+    static QString GetFilename( QString const & url, QString const & parent_directory );
 private:
     void startDownloadImpl( unsigned int threads_to_use,
             QList<Information::ThreadInfo> thread_info_list = QList<Information::ThreadInfo>() );
     void addNewUrlImpl( QString const & url, QNetworkReply *response );
     QUrl redirectUrl( QUrl const & possibleRedirectUrl, QUrl const & oldRedirectUrl) const;
+    Information* find( QString const & url );
 };
 #endif /* DOWNLOAD_HPP_ */

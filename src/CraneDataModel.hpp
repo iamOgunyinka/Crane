@@ -12,7 +12,8 @@
 #include <bb/cascades/DataModel>
 
 using namespace bb::cascades;
-class CraneDataModel : DataModel
+
+class CraneDataModel : public DataModel
 {
     Q_OBJECT
 public:
@@ -20,9 +21,23 @@ public:
     Q_INVOKABLE virtual int childCount( QVariantList const & indexPath );
     Q_INVOKABLE virtual QString itemType( QVariantList const & indexPath );
     Q_INVOKABLE virtual QVariant data( QVariantList const & indexPath );
-    Q_INVOKABLE virtual void removeItem( QVariantList const & indexPath );
-    CraneDataModel();
+    CraneDataModel( QObject *parent = NULL );
     virtual ~CraneDataModel();
+};
+
+class CraneFilteredDataModel : public DataModel
+{
+    Q_OBJECT
+public:
+    Q_INVOKABLE virtual bool hasChildren( QVariantList const & indexPath );
+    Q_INVOKABLE virtual int childCount( QVariantList const & indexPath );
+    Q_INVOKABLE virtual QString itemType( QVariantList const & indexPath );
+    Q_INVOKABLE virtual QVariant data( QVariantList const & indexPath );
+    CraneFilteredDataModel( bb::cascades::DataModel *data_model, QObject *parent = NULL );
+    virtual ~CraneFilteredDataModel();
+
+private:
+    bb::cascades::DataModel *m_pDataModel;
 };
 
 #endif /* CRANEDATAMODEL_HPP_ */

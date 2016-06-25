@@ -15,7 +15,8 @@
 struct Information
 {
     typedef struct _Header {
-        unsigned int url_length;
+        unsigned int old_url_length;
+        unsigned int new_url_length;
         unsigned int filename_length;
         unsigned int time_started_length;
         unsigned int time_ended_length;
@@ -24,20 +25,30 @@ struct Information
     typedef struct  _ThreadInfo {
         qint64       thread_low_byte; // will be where last download stopped
         qint64       thread_high_byte; // byte destination in the range [ thread_low_byte - thread_high_byte ]
+        qint64       bytes_written;
         unsigned int thread_number;
     } ThreadInfo;
+
+    struct CustomDeleter {
+        void operator()( Information::ThreadInfo *thread_info_pointer ){
+            delete []thread_info_pointer;
+        }
+    };
+
     typedef QSharedPointer<ThreadInfo> SP_ThreadInfo;
 
     Header          info_header;
-    QString         url;
+    QString         original_url;
+    QString         redirected_url;
     QString         filename;
     QString         time_started;
     QString         time_stopped;
 
+    unsigned int    download_completed;
     unsigned int    number_of_threads_used;
-    SP_ThreadInfo   pthread_info;
     unsigned int    accept_ranges;
 
+    SP_ThreadInfo   pthread_info;
     qint64          size_of_file_in_bytes;
 };
 
@@ -49,7 +60,7 @@ class DownloadInfo: public QObject
 public:
     DownloadInfo( QString const & filename, QObject *parent = NULL );
     virtual ~DownloadInfo();
-    static QMap<QString, QSharedPointer<Information> > const & DownloadInfoMap();
+    static QMap<QString, QSharedPointer<Information> > & DownloadInfoMap();
 private:
     static QMap<QString, QSharedPointer<Information> > download_info_map;
 public slots:

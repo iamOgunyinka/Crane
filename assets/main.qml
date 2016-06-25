@@ -149,36 +149,20 @@ TabbedPane
                     ListView {
                         id: list_view
                         
-                        dataModel: ArrayDataModel {
-                            id: data_model
-                        }
+                        dataModel: model_
+                        
                         listItemComponents: [
                             ListItemComponent {
-                                type: ""
+                                type: "item"
                                 StandardListItem {
-                                    title: ListItemData
-                                    status: "Ogunyinka"
-                                    imageSource: "asset:///images/music.png"
-                                    contextActions: [
-                                        ActionSet {
-                                            DeleteActionItem {
-//                                                imageSource: "asset:///images/delete.png"
-                                            }
-                                        }
-                                    ]
+                                    
                                 }
                             }
                         ]
-                        onCreationCompleted: {
-                            var array = [ "Apple", "Pie", "Mango", "Banana" ]
-                            data_model.append( array );
-                            data_model.append( "Tomato" );
-                        }
                         onTriggered: {
                             list_view.clearSelection()
                             list_view.toggleSelection(indexPath)
                         }
-                        
                     }
                 }
             }

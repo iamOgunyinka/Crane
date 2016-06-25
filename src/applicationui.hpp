@@ -18,6 +18,9 @@
 #define ApplicationUI_HPP_
 
 #include <QObject>
+#include <bb/system/InvokeManager.hpp>
+#include "DownloadManager.hpp"
+#include "Settings.hpp"
 
 namespace bb
 {
@@ -42,9 +45,17 @@ public:
     virtual ~ApplicationUI() {}
 private slots:
     void onSystemLanguageChanged();
+    void onInvokeRequest( bb::system::InvokeRequest const & );
 private:
-    QTranslator* m_pTranslator;
-    bb::cascades::LocaleHandler* m_pLocaleHandler;
+    QTranslator                 *m_pTranslator;
+    bb::cascades::LocaleHandler * m_pLocaleHandler;
+    bb::system::InvokeManager   *m_pInvokeManager;
+    Settings                    *m_pSettings;
+    CraneDownloader             *m_pDownloadManager;
+
+
+private:
+    void initFullUI();
 };
 
 #endif /* ApplicationUI_HPP_ */
