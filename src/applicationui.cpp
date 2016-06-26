@@ -1,19 +1,3 @@
-/*
- * Copyright (c) 2011-2015 BlackBerry Limited.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 #include "applicationui.hpp"
 
 #include <bb/cascades/Application>
@@ -81,14 +65,17 @@ void ApplicationUI::onInvokeRequest( bb::system::InvokeRequest const & request )
 
 void ApplicationUI::initFullUI()
 {
-    QmlDocument *qml = QmlDocument::create( "asset:///main.qml" ).parent(this);
-
     CraneDataModel       *data_model = new CraneDataModel;
     CraneFilteredDataModel *filtered_model = new CraneFilteredDataModel( data_model, this );
 
+    QObject::connect( m_pDownloadManager, SIGNAL( statusChanged( QString ) ), filtered_model,
+            SLOT( refreshView( QString ) ) );
+
+    QmlDocument *qml = QmlDocument::create( "asset:///main.qml" ).parent(this);
+
+    qml->setContextProperty( "model_", filtered_model );
     qml->setContextProperty( "download_manager", m_pDownloadManager );
     qml->setContextProperty( "settings", m_pSettings );
-    qml->setContextProperty( "model_", filtered_model );
     // Create root object for the UI
     AbstractPane *root = qml->createRootObject<AbstractPane>();
 

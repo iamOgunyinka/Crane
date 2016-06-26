@@ -14,8 +14,9 @@
 #include <QFile>
 #include <QDate>
 #include <QMutex>
+#include <QTimer>
 
-#include "DownloadInfo.hpp"
+#include "ApplicationData.hpp"
 
 class DownloadItem : public QObject
 {
@@ -31,6 +32,7 @@ private:
     unsigned int   use_lock_;
     QFile          *file_;
     QNetworkReply  *reply_;
+    QTime          timer;
 
     void flush();
     void flushImpl();
@@ -45,6 +47,7 @@ signals:
     void stopped( unsigned int );
     void error( QString );
     void status( unsigned int, qint64 );
+    void status( unsigned int, int, double, QString );
 public:
     DownloadItem( QUrl url, qint64 low, qint64 high, QObject *parent = NULL );
     ~DownloadItem();
@@ -60,6 +63,7 @@ public:
     static QMutex mutex;
 };
 
+
 class DownloadComponent: public QObject
 {
     Q_OBJECT
@@ -74,6 +78,7 @@ public:
     QFile               *file;
     QList<QThread*>     download_threads;
     QList<ThreadData>   thread_data;
+    QList<unsigned int> percentage;
     qint64              size_in_bytes;
     unsigned int        accept_ranges;
     unsigned int        byte_range_specified;
@@ -89,6 +94,7 @@ public slots:
     void finishedHandler( unsigned int );
     void headFinishedHandler();
     void updateThread( unsigned int, qint64 );
+    void statusHandler( unsigned int, int, double, QString );
     void updateDownloadInfo( Information *, bool isCompleted = false );
     void updateCreateDownloadInfo();
     void startDownload();
@@ -97,12 +103,15 @@ signals:
     void error( QString );
     void finished( QString );
     void downloadStarted( QString );
+    void statusChanged( QString );
+    void downloadStatus( unsigned int, int percentage, QString url, QString speed );
 public:
     DownloadComponent( QString address, QString directory, unsigned int no_of_threads, QObject *parent = NULL );
     ~DownloadComponent();
     static QString GetFilename( QString const & url, QString const & parent_directory );
+
 private:
-    void startDownloadImpl( unsigned int threads_to_use,
+    void startDownloadImpl( int threads_to_use,
             QList<Information::ThreadInfo> thread_info_list = QList<Information::ThreadInfo>() );
     void addNewUrlImpl( QString const & url, QNetworkReply *response );
     QUrl redirectUrl( QUrl const & possibleRedirectUrl, QUrl const & oldRedirectUrl) const;

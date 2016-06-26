@@ -6,8 +6,12 @@
  */
 
 #include <src/DownloadInfo.hpp>
-#include <stdio.h>
+#include <bb/data/JsonDataAccess.hpp>
+#include <QFile>
 #include <QDebug>
+#include <QList>
+#include <QDir>
+#include <qtextstream.h>
 
 DownloadInfo::DownloadInfo( QString const & filename, QObject *parent ): QObject( parent ),
         filename_( filename )
@@ -24,120 +28,134 @@ QMap<QString, QSharedPointer<Information> > & DownloadInfo::DownloadInfoMap(){ r
 
 void DownloadInfo::readDownloadSettingsFile()
 {
-    FILE *file = fopen( filename_.toStdString().c_str(), "rb" );
-    if( !file ){ // file doesn't exist
-        fclose( file );
-        file = fopen( filename_.toStdString().c_str(), "wb" );
-        if( !file ){
-            emit error( "Unable to create download info file." );
+    QFile file( filename_ );
+    if( !file.exists() ){
+        QDir dir;
+        dir.mkpath( "data/" );
+        if( !file.open( QIODevice::ReadWrite | QIODevice::Text ) ){
+            qDebug() << "Unable to open file.";
             return;
         }
-        int reads = 0;
-        fwrite( &reads, sizeof( int ), 1, file );
-        fclose( file );
-        emit finished();
+        QTextStream textS( &file );
+        textS << "{}";
+        file.close();
+    }
+
+    bb::data::JsonDataAccess jda;
+    QVariant data = jda.load( filename_ );
+    if( jda.hasError() ){
+        qDebug() << "Json: " << jda.error().errorMessage();
         return;
     }
 
-    unsigned int number_of_downloads = 0;
-    fread( &number_of_downloads, sizeof( int ), 1, file );
+    QVariantMap file_content = data.toMap();
+    QList<QString> urls = file_content.keys();
 
-    qDebug() << "Reading download files";
-    Information::CustomDeleter deleter;
-
-    for( unsigned int i = 0; i != number_of_downloads; ++i )
+    for( int i = 0; i != urls.size(); ++i )
     {
         QSharedPointer<Information> info( new Information() );
-        fread( &( info->info_header.old_url_length ), sizeof( unsigned int ), 1, file );
-        fread( &( info->info_header.new_url_length ), sizeof( unsigned int ), 1, file );
-        fread( &( info->info_header.filename_length ), sizeof( unsigned int ), 1, file );
-        fread( &( info->info_header.time_started_length ), sizeof( unsigned int ), 1, file );
-        fread( &( info->info_header.time_ended_length ), sizeof( unsigned int ), 1, file );
-        fread( &( info->download_completed ), sizeof( unsigned int ), 1, file );
+        QVariantMap key_value = file_content.value( urls.at( i ) ).toMap();
 
-        info->original_url.resize( info->info_header.old_url_length + 1 );
-        info->redirected_url.resize( info->info_header.new_url_length + 1 );
-        info->filename.resize( info->info_header.filename_length + 1 );
+        info->original_url = key_value[ "original_url" ].toString();
+        info->redirected_url = key_value[ "new_url"].toString();
+        info->filename = key_value["filename"].toString();
+        info->time_started = key_value["time_started"].toString();
+        info->time_stopped = key_value["time_completed"].toString();
+        info->percentage = key_value[ "percentage" ].toInt();
+        info->speed = key_value["speed"].toString();
 
-        fread( info->original_url.data(), sizeof( QChar ), info->info_header.old_url_length, file );
-        fread( info->redirected_url.data(), sizeof( QChar ), info->info_header.new_url_length, file );
-        fread( info->filename.data(), sizeof( QChar ), info->info_header.filename_length, file );
+        QVariantList threads = key_value["threads"].toList();
+        Information::ThreadInfo thread_info;
+        for( int x = 0; x != threads.size(); ++x ){
+            QVariantMap thread_info_map = threads[x].toMap();
+            thread_info.thread_low_byte = thread_info_map["low_byte"].toUInt();
+            thread_info.thread_high_byte = thread_info_map["high_byte"].toUInt();
+            thread_info.bytes_written = thread_info_map["bytes_written"].toUInt();
+            thread_info.thread_number = thread_info_map["thread_number"].toUInt();
 
-        info->original_url[info->info_header.old_url_length] = '\0';
-        info->redirected_url[info->info_header.new_url_length] = '\0';
-        info->filename[info->info_header.filename_length] = '\0';
-
-        fread( &info->number_of_threads_used, sizeof( unsigned int ), 1, file );
-        if( info->number_of_threads_used == 1 ){
-            info->pthread_info = Information::SP_ThreadInfo( new Information::ThreadInfo );
-        } else {
-            info->pthread_info = Information::SP_ThreadInfo( new Information::ThreadInfo[info->number_of_threads_used], deleter );
+            info->threads.push_back( thread_info );
         }
-        for( unsigned int x = 0; x != info->number_of_threads_used; ++x ){
-            fread( &info->pthread_info->thread_low_byte, sizeof( qint64 ), 1, file );
-            fread( &info->pthread_info->thread_high_byte, sizeof( qint64 ), 1, file );
-            fread( &info->pthread_info->bytes_written, sizeof( qint64 ), 1, file );
-            fread( &info->pthread_info->thread_number, sizeof( unsigned int ), 1, file );
-        }
+        info->accept_ranges = key_value["accept_ranges"].toUInt();
+        info->accept_ranges = key_value["status"].toInt();
+        info->size_of_file_in_bytes = key_value["file_size"].toUInt();
 
-        fread( &info->size_of_file_in_bytes, sizeof( qint64 ), 1, file );
-        fread( &info->accept_ranges, sizeof( unsigned int ), 1, file );
-
-        info->time_started.resize( info->info_header.time_started_length + 1 );
-        fread( info->time_started.data(), sizeof( QChar ), info->info_header.time_started_length, file );
-        info->time_started[info->info_header.time_started_length] = '\0';
-
-        if( info->info_header.time_ended_length != 0 ){
-            info->time_stopped.resize( info->info_header.time_ended_length + 1 );
-            fread( info->time_stopped.data(), sizeof( QChar ), info->info_header.time_ended_length, file );
-            info->time_stopped[info->info_header.time_ended_length] = '\0';
-        }
-
-        download_info_map.insert( info->original_url, info );
+        DownloadInfo::download_info_map.insert( info->original_url, info );
     }
-    fclose( file );
     emit finished();
 }
 
 void DownloadInfo::writeDownloadSettingsFile()
 {
-    FILE *file = fopen( filename_.toStdString().c_str(), "wb" );
+    QVariantMap root;
+    QList<QString> keys = download_info_map.keys();
 
-    Q_ASSERT( file != NULL && "File should exist by now." );
+    Q_ASSERT( keys.size() == download_info_map.size() );
 
-    int size_of_downloads = download_info_map.size();
-    fwrite( &size_of_downloads, sizeof( unsigned int ), 1, file );
-    for( QMap<QString, QSharedPointer<Information> >::const_iterator cbegin = download_info_map.constBegin();
-            cbegin != download_info_map.constEnd(); ++cbegin )
+    for( int i = 0; i != keys.size(); ++i )
     {
-        Information *p_info = cbegin->data();
-        fwrite( &p_info->info_header.old_url_length, sizeof( unsigned int ), 1, file );
-        fwrite( &p_info->info_header.new_url_length, sizeof( unsigned int ), 1, file );
-        fwrite( &p_info->info_header.filename_length, sizeof( unsigned int ), 1, file );
-        fwrite( &p_info->info_header.time_started_length, sizeof( unsigned int ), 1, file );
-        fwrite( &p_info->info_header.time_ended_length, sizeof( unsigned int ), 1, file );
-        fwrite( &p_info->download_completed, sizeof( unsigned int ), 1, file );
+        QSharedPointer<Information> item_info = download_info_map[ keys[i] ];
+        QVariantMap item_map;
+        item_map["original_url"] = item_info->original_url;
+        item_map["new_url"] = item_info->redirected_url;
+        item_map["filename"] = item_info->filename;
+        item_map["time_started"] = item_info->time_started;
+        item_map["time_completed"] = item_info->time_stopped;
+        item_map["speed"] = item_info->speed;
+        item_map["percentage"] = item_info->percentage;
 
-        fwrite( p_info->original_url.data(), sizeof( QChar ), p_info->original_url.length(), file );
-        fwrite( p_info->redirected_url.data(), sizeof( QChar ), p_info->redirected_url.length(), file );
-        fwrite( p_info->filename.data(), sizeof( QChar ), p_info->filename.length(), file );
-        fwrite( &p_info->number_of_threads_used, sizeof( unsigned int ), 1, file );
-
-        for( unsigned int i = 0; i != p_info->number_of_threads_used; ++i ){
-            fwrite( &p_info->pthread_info->thread_low_byte, sizeof( qint64 ), 1, file );
-            fwrite( &p_info->pthread_info->thread_high_byte, sizeof( qint64 ), 1, file );
-            fwrite( &p_info->pthread_info->bytes_written, sizeof( qint64 ), 1, file );
-            fwrite( &p_info->pthread_info->thread_number, sizeof( unsigned int ), 1, file );
+        QVariantList thread_info_list;
+        for( int i = 0; i != item_info->threads.size(); ++i )
+        {
+            QVariantMap thread_map;
+            thread_map["thread_number"] = item_info->threads.at( i ).thread_number;
+            thread_map["low_byte"] = item_info->threads.at( i ).thread_low_byte;
+            thread_map["high_byte"] = item_info->threads.at( i ).thread_high_byte;
+            thread_map["bytes_written"] = item_info->threads.at( i ).bytes_written;
+            thread_info_list.push_back( thread_map );
         }
 
-        fwrite( &p_info->size_of_file_in_bytes, sizeof( qint64 ), 1, file );
-        fwrite( &p_info->accept_ranges, sizeof( unsigned int ), 1, file );
+        item_map["threads"] = thread_info_list;
+        item_map["accept_ranges"] = item_info->accept_ranges;
+        item_map["file_size"] = item_info->size_of_file_in_bytes;
+        item_map["status"] = ( unsigned int ) item_info->download_status;
 
-        fwrite( p_info->time_started.data(), sizeof( QChar ), p_info->info_header.time_started_length, file );
-        if( p_info->info_header.time_ended_length != 0 ){
-            fwrite( p_info->time_stopped.data(), sizeof( QChar ), p_info->info_header.time_ended_length, file );
+        root.insert( item_info->original_url, item_map );
+    }
+
+    QFile file( filename_ );
+    if( !file.exists() ){
+        QDir dir;
+        dir.mkpath( "data/" );
+        if( !file.open( QIODevice::ReadWrite | QIODevice::Text ) ){
+            qDebug() << "Unable to open file.";
+            return;
         }
     }
 
-    fclose( file );
+    bb::data::JsonDataAccess jda;
+    jda.save( root, filename_ );
+
+    if( jda.hasError() ){
+        qDebug() << "We have an error: " << jda.error().errorMessage();
+        file.close();
+    } else {
+        file.close();
+        qDebug() << "File was saved correctly to: " << file.fileName();
+    }
+}
+
+QString Information::DownloadStatusToString( Information::DownloadStatus status )
+{
+    switch( status ){
+        case Information::DownloadCompleted:
+            return QString( "Completed" );
+        case Information::DownloadStopped:
+            return QString( "Stopped" );
+        case Information::DownloadError:
+            return QString( "Error" );
+        case Information::DownloadPaused:
+            return QString( "Paused" );
+        default:
+            return QString( "" );
+    }
 }

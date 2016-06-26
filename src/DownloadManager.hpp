@@ -25,10 +25,12 @@ public slots:
     void finishedHandler( QString );
     void errorHandler( QString );
     void downloadStartedHandler( QString url );
+    void statusChangedHandler( QString url );
 signals:
     void error( QString );
     void finished( QString );
     void status( QString );
+    void statusChanged( QString );
 public:
     static QMap<QString, DownloadComponent*>   active_download_list;
     static QList<QString>                      inactive_downloads;
@@ -54,8 +56,10 @@ public:
 signals:
     void error( QString );
     void status( QString );
+    void statusChanged( QString );
 public slots:
     void errorHandler( QString );
     void statusHandler( QString );
+    void statusChangedHandler( QString );
 };
 #endif /* DOWNLOADMANAGER_HPP_ */

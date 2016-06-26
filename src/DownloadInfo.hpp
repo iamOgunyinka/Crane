@@ -14,41 +14,34 @@
 
 struct Information
 {
-    typedef struct _Header {
-        unsigned int old_url_length;
-        unsigned int new_url_length;
-        unsigned int filename_length;
-        unsigned int time_started_length;
-        unsigned int time_ended_length;
-    } Header;
-
     typedef struct  _ThreadInfo {
         qint64       thread_low_byte; // will be where last download stopped
         qint64       thread_high_byte; // byte destination in the range [ thread_low_byte - thread_high_byte ]
         qint64       bytes_written;
         unsigned int thread_number;
     } ThreadInfo;
+    typedef QList<ThreadInfo> ThreadList;
 
-    struct CustomDeleter {
-        void operator()( Information::ThreadInfo *thread_info_pointer ){
-            delete []thread_info_pointer;
-        }
+    enum DownloadStatus {
+        DownloadCompleted = 0,
+        DownloadStopped,
+        DownloadPaused,
+        DownloadError,
+        DownloadInProgress
     };
+    static QString DownloadStatusToString( Information::DownloadStatus status );
 
-    typedef QSharedPointer<ThreadInfo> SP_ThreadInfo;
-
-    Header          info_header;
     QString         original_url;
     QString         redirected_url;
     QString         filename;
     QString         time_started;
     QString         time_stopped;
+    QString         speed;
+    DownloadStatus  download_status;
+    unsigned int    percentage;
 
-    unsigned int    download_completed;
-    unsigned int    number_of_threads_used;
     unsigned int    accept_ranges;
-
-    SP_ThreadInfo   pthread_info;
+    ThreadList      threads;
     qint64          size_of_file_in_bytes;
 };
 

@@ -55,15 +55,9 @@ TabbedPane
             Page
             {
                 titleBar: TitleBar {
-                    title: "Crane"
+                    title: "Crane Download Manager"
                     appearance: TitleBarAppearance.Default
                     kind: TitleBarKind.Default
-                    acceptAction: ActionItem {
-                        imageSource: "asset:///images/5_content_remove.png"
-                        onTriggered: {
-                            Application.minimize();
-                        }
-                    }
                     dismissAction: ActionItem {
                         imageSource: "asset:///images/5_content_new.png"
                         onTriggered: {
@@ -134,6 +128,13 @@ TabbedPane
                     Container {
                         SegmentedControl
                         {
+                            id: segmented_filter
+                            onCreationCompleted: {
+                                segmented_filter.selectedIndex = 1;
+                            }
+                            onSelectedIndexChanged: {
+                                model_.changeView( selectedIndex );
+                            }
                             Option 
                             {
                                 id: queueOption
@@ -155,34 +156,29 @@ TabbedPane
                             ListItemComponent {
                                 type: "item"
                                 StandardListItem {
+
+                                    title: ListItemData.file_name;
+                                    description: ListItemData.downloaded_size + "bytes"
+                                    status: ListItemData.status
+                                    imageSource: "asset:///images/music.png"
                                     
+                                    contextActions: [
+                                        ActionSet {
+                                            DeleteActionItem {
+                                                onTriggered: {
+                                                    
+                                                }
+                                            }
+                                        }
+                                    ]
                                 }
                             }
                         ]
                         onTriggered: {
                             list_view.clearSelection()
-                            list_view.toggleSelection(indexPath)
+//                            list_view.toggleSelection( indexPath )
+                            select( indexPath )
                         }
-                    }
-                }
-            }
-        }
-    }
-    
-    Tab
-    {
-        id: browserTab
-        title: "Browser"
-        imageSource: "asset:///images/add.png"
-        NavigationPane
-        {
-            id: browserPane
-            Page {
-                Container {
-                    Label 
-                    {
-                        text: "Work-in-Progress"
-                        textStyle.textAlign: TextAlign.Center
                     }
                 }
             }

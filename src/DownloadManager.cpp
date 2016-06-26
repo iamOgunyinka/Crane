@@ -13,7 +13,6 @@
 #include <src/DownloadInfo.hpp>
 
 // static data initialized
-
 QMap<QString, DownloadComponent*>   DownloadManager::active_download_list;
 QList<QString>  DownloadManager::inactive_downloads;
 int             DownloadManager::max_number_of_downloads = 2;
@@ -53,20 +52,17 @@ void DownloadManager::downloadStartedHandler( QString url )
     emit status( "Download started on " + url );
 }
 
+void DownloadManager::statusChangedHandler( QString url )
+{
+    emit statusChanged( url );
+}
+
 QSharedPointer<DownloadManager> CraneDownloader::m_pDownloadManager ( new DownloadManager );
 
 CraneDownloader::CraneDownloader(): QObject( NULL )
 {
-    QThread      *new_thread = new QThread( this );
-    DownloadInfo *download_info = new DownloadInfo( "data/download_info.db", new_thread );
-
-    QObject::connect( new_thread, SIGNAL( started() ), download_info, SLOT( readDownloadSettingsFile() ) );
-    QObject::connect( download_info, SIGNAL( error( QString )), this, SLOT( errorHandler( QString ) ) );
-    QObject::connect( download_info, SIGNAL( finished() ), new_thread, SLOT(quit() ) );
-    QObject::connect( download_info, SIGNAL( error( QString )), new_thread, SLOT( quit() ) );
-    QObject::connect( new_thread, SIGNAL( finished() ), new_thread, SLOT( deleteLater() ) );
-
-    new_thread->start();
+    DownloadInfo download_info ( "data/download_info.json", this );
+    download_info.readDownloadSettingsFile();
 
     QObject::connect( CraneDownloader::m_pDownloadManager.data(), SIGNAL( error( QString ) ),
             this, SLOT( errorHandler( QString ) ) );
@@ -74,6 +70,8 @@ CraneDownloader::CraneDownloader(): QObject( NULL )
             this, SLOT( statusHandler( QString ) ) );
     QObject::connect( CraneDownloader::m_pDownloadManager.data(), SIGNAL( finished( QString ) ),
             this, SLOT( statusHandler( QString ) ) );
+    QObject::connect( CraneDownloader::m_pDownloadManager.data(), SIGNAL( statusChanged( QString ) ),
+            this, SLOT( statusChangedHandler( QString ) ) );
 }
 
 CraneDownloader::~CraneDownloader(){ }
@@ -87,6 +85,8 @@ void CraneDownloader::addNewUrlWithManager( QString const & address, QString loc
 	DownloadManager::active_download_list.insert( address, new_download );
 
 	QObject::connect( new_download_thread, SIGNAL( started() ), new_download, SLOT( startDownload() ) );
+    QObject::connect( new_download, SIGNAL( statusChanged( QString ) ), CraneDownloader::m_pDownloadManager.data(),
+            SLOT( statusChangedHandler( QString ) ) );
 	QObject::connect( new_download, SIGNAL( error( QString )), dm, SLOT( errorHandler( QString )) );
 	QObject::connect( new_download, SIGNAL( downloadStarted( QString )), dm,
 	        SLOT( downloadStartedHandler( QString )) );
@@ -125,4 +125,9 @@ void CraneDownloader::errorHandler( QString what )
 void CraneDownloader::statusHandler( QString message )
 {
     emit status( message );
+}
+
+void CraneDownloader::statusChangedHandler( QString url )
+{
+    emit statusChanged( url );
 }
