@@ -59,10 +59,15 @@ void DownloadInfo::readDownloadSettingsFile()
         info->original_url = key_value[ "original_url" ].toString();
         info->redirected_url = key_value[ "new_url"].toString();
         info->filename = key_value["filename"].toString();
+        info->path_to_file = key_value["path_to_file"].toString();
         info->time_started = key_value["time_started"].toString();
         info->time_stopped = key_value["time_completed"].toString();
         info->percentage = key_value[ "percentage" ].toInt();
         info->speed = key_value["speed"].toString();
+        info->percentage = key_value["percentage"].toInt();
+        info->accept_ranges = key_value["accept_ranges"].toUInt();
+        info->download_status = Information::IntToStatus( key_value["status"].toInt() );
+        info->size_of_file_in_bytes = key_value["file_size"].toUInt();
 
         QVariantList threads = key_value["threads"].toList();
         Information::ThreadInfo thread_info;
@@ -75,9 +80,6 @@ void DownloadInfo::readDownloadSettingsFile()
 
             info->threads.push_back( thread_info );
         }
-        info->accept_ranges = key_value["accept_ranges"].toUInt();
-        info->accept_ranges = key_value["status"].toInt();
-        info->size_of_file_in_bytes = key_value["file_size"].toUInt();
 
         DownloadInfo::download_info_map.insert( info->original_url, info );
     }
@@ -98,6 +100,7 @@ void DownloadInfo::writeDownloadSettingsFile()
         item_map["original_url"] = item_info->original_url;
         item_map["new_url"] = item_info->redirected_url;
         item_map["filename"] = item_info->filename;
+        item_map["path_to_file"] = item_info->path_to_file;
         item_map["time_started"] = item_info->time_started;
         item_map["time_completed"] = item_info->time_stopped;
         item_map["speed"] = item_info->speed;
@@ -137,11 +140,8 @@ void DownloadInfo::writeDownloadSettingsFile()
 
     if( jda.hasError() ){
         qDebug() << "We have an error: " << jda.error().errorMessage();
-        file.close();
-    } else {
-        file.close();
-        qDebug() << "File was saved correctly to: " << file.fileName();
     }
+    file.close();
 }
 
 QString Information::DownloadStatusToString( Information::DownloadStatus status )
@@ -158,4 +158,9 @@ QString Information::DownloadStatusToString( Information::DownloadStatus status 
         default:
             return QString( "" );
     }
+}
+
+Information::DownloadStatus Information::IntToStatus( int status )
+{
+    return static_cast<DownloadStatus>( status );
 }

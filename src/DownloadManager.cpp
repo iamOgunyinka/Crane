@@ -48,7 +48,6 @@ void DownloadManager::finishedHandler( QString url )
 
 void DownloadManager::downloadStartedHandler( QString url )
 {
-    qDebug() << "Download started on " << url;
     emit status( "Download started on " + url );
 }
 
@@ -61,8 +60,11 @@ QSharedPointer<DownloadManager> CraneDownloader::m_pDownloadManager ( new Downlo
 
 CraneDownloader::CraneDownloader(): QObject( NULL )
 {
-    DownloadInfo download_info ( "data/download_info.json", this );
-    download_info.readDownloadSettingsFile();
+//    QFile file( "data/download_info.json" );
+//    if( file.exists() ){
+//        file.remove();
+//    }
+    ApplicationData::m_pDownloadInfo->readDownloadSettingsFile();
 
     QObject::connect( CraneDownloader::m_pDownloadManager.data(), SIGNAL( error( QString ) ),
             this, SLOT( errorHandler( QString ) ) );
@@ -74,6 +76,13 @@ CraneDownloader::CraneDownloader(): QObject( NULL )
             this, SLOT( statusChangedHandler( QString ) ) );
 }
 
+/*
+Byte was specified:  "bytes=0-1278091"
+Byte was specified:  "bytes=1278092-2556182"
+Byte was specified:  "bytes=2556183-3834273"
+Byte was specified:  "bytes=3834274-5112367"
+
+ */
 CraneDownloader::~CraneDownloader(){ }
 
 void CraneDownloader::addNewUrlWithManager( QString const & address, QString location, DownloadManager *dm )
@@ -91,6 +100,7 @@ void CraneDownloader::addNewUrlWithManager( QString const & address, QString loc
 	QObject::connect( new_download, SIGNAL( downloadStarted( QString )), dm,
 	        SLOT( downloadStartedHandler( QString )) );
 	QObject::connect( new_download, SIGNAL( finished( QString ) ), dm, SLOT( finishedHandler( QString ) ) );
+	QObject::connect( new_download, SIGNAL( stopped() ), new_download_thread, SLOT( quit() ) );
 	QObject::connect( new_download, SIGNAL( finished( QString ) ), new_download_thread, SLOT( quit() ) );
 	QObject::connect( new_download_thread, SIGNAL( finished() ), new_download_thread, SLOT( deleteLater() ) );
 
@@ -130,4 +140,15 @@ void CraneDownloader::statusHandler( QString message )
 void CraneDownloader::statusChangedHandler( QString url )
 {
     emit statusChanged( url );
+}
+
+void CraneDownloader::aboutToExit()
+{
+    QList<QString> keys = DownloadManager::active_download_list.keys();
+    for( int i = 0; i != keys.size(); ++i ){
+        DownloadComponent *component = DownloadManager::active_download_list.value( keys[i] );
+        component->stopDownload();
+    }
+    ApplicationData::m_pDownloadInfo->writeDownloadSettingsFile();
+    qDebug() << "Closed.";
 }

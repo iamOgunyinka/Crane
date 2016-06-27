@@ -47,9 +47,9 @@ signals:
     void stopped( unsigned int );
     void error( QString );
     void status( unsigned int, qint64 );
-    void status( unsigned int, int, double, QString );
+    void status( int, double, QString );
 public:
-    DownloadItem( QUrl url, qint64 low, qint64 high, QObject *parent = NULL );
+    DownloadItem( QUrl url, qint64 low, qint64 high, qint64 bytes_written, QObject *parent = NULL );
     ~DownloadItem();
 
     void setThreadNumber( unsigned int number ) { thread_number_ = number; }
@@ -78,33 +78,36 @@ public:
     QFile               *file;
     QList<QThread*>     download_threads;
     QList<ThreadData>   thread_data;
-    QList<unsigned int> percentage;
+    unsigned int        percentage;
     qint64              size_in_bytes;
     unsigned int        accept_ranges;
     unsigned int        byte_range_specified;
 
     unsigned int        max_number_of_threads;
     QString             download_directory;
-
+    QString             filename;
     QDateTime           time_started;
     QDateTime           time_completed;
+    QTimer              timer;
 public slots:
     void errorHandler( QString );
     void errorHandler( QNetworkReply::NetworkError );
     void finishedHandler( unsigned int );
     void headFinishedHandler();
     void updateThread( unsigned int, qint64 );
-    void statusHandler( unsigned int, int, double, QString );
+    void statusHandler( int, double, QString );
     void updateDownloadInfo( Information *, bool isCompleted = false );
     void updateCreateDownloadInfo();
     void startDownload();
-    void stopDownload( QString address );
+    void cleanUpOnExit();
+    void stopDownload();
 signals:
     void error( QString );
     void finished( QString );
     void downloadStarted( QString );
     void statusChanged( QString );
-    void downloadStatus( unsigned int, int percentage, QString url, QString speed );
+    void stopped();
+    void closed();
 public:
     DownloadComponent( QString address, QString directory, unsigned int no_of_threads, QObject *parent = NULL );
     ~DownloadComponent();

@@ -12,6 +12,7 @@ TabbedPane
         number_of_threads = settings.max_thread;
         number_of_downloads = settings.max_download;
         downloads_directory = settings.location
+        Application.aboutToQuit.connect( download_manager.aboutToExit )
     }
     id: root
     showTabsOnActionBar: true
@@ -49,6 +50,7 @@ TabbedPane
             }
             function status( message )
             {
+                busy_wait_activity.stop();
                 system_toast.body = message
                 system_toast.show();
             }
@@ -75,6 +77,7 @@ TabbedPane
                                 case SystemUiResult.ConfirmButtonSelection :
                                     download_manager.addNewUrl( addNewDownload.inputFieldTextEntry(), number_of_threads, 
                                         number_of_downloads, downloads_directory );
+                                    busy_wait_activity.start();
                                     break;
                                 default :
                                     break;
@@ -130,7 +133,7 @@ TabbedPane
                         {
                             id: segmented_filter
                             onCreationCompleted: {
-                                segmented_filter.selectedIndex = 1;
+                                segmented_filter.selectedIndex = 0;
                             }
                             onSelectedIndexChanged: {
                                 model_.changeView( selectedIndex );
@@ -147,30 +150,90 @@ TabbedPane
                             }
                         }
                     }
+                    Container {
+                        ActivityIndicator {
+                            id: busy_wait_activity
+                            preferredHeight: 130
+                            preferredWidth: 130
+                            horizontalAlignment: HorizontalAlignment.Center
+                            verticalAlignment: VerticalAlignment.Center
+                        }
+                    }
                     ListView {
+                        attachedObjects: [
+                            CustomListItem {
+                                id: completed_list_item
+                                Container {
+                                    
+                                }
+                            }
+                        ]
                         id: list_view
                         
                         dataModel: model_
-                        
                         listItemComponents: [
                             ListItemComponent {
                                 type: "item"
-                                StandardListItem {
-
-                                    title: ListItemData.file_name;
-                                    description: ListItemData.downloaded_size + "bytes"
-                                    status: ListItemData.status
-                                    imageSource: "asset:///images/music.png"
-                                    
+                                CustomListItem {
                                     contextActions: [
                                         ActionSet {
+                                            ActionItem {
+                                                title: "View Details"
+                                                imageSource: "asset:///images/" + ListItem.image
+                                            }
                                             DeleteActionItem {
-                                                onTriggered: {
-                                                    
-                                                }
+                                                title: "Remove from list"
+                                            }
+                                            ActionItem {
+                                                title: "Delete file";
+                                                imageSource: "asset:///images/delete.png"
                                             }
                                         }
                                     ]
+                                    Container {
+                                        layout: StackLayout {
+                                            orientation: LayoutOrientation.LeftToRight
+                                        }
+                                        Container {
+                                            layoutProperties: StackLayoutProperties {
+                                                spaceQuota: 2
+                                            }
+                                            ImageView {
+                                                id: download_item_logo
+                                                imageSource: ListItemData.image
+                                            }
+                                            Label {
+                                                id: download_item_size
+                                                text: ListItemData.size
+                                            }
+                                        }
+                                        Container {
+                                            layoutProperties: StackLayoutProperties {
+                                                spaceQuota: 6
+                                            }
+                                            Label {
+                                                id: download_item_filename
+                                                text: ListItemData.filename
+                                            }
+                                            Label {
+                                                id: download_item_speed
+                                                text: ListItemData.speed
+                                            }
+                                        }
+                                        Container {
+                                            layoutProperties: StackLayoutProperties {
+                                                spaceQuota: 2
+                                            }
+                                            Label {
+                                                id: download_item_status
+                                                text: ListItemData.status
+                                            }
+                                            Label {
+                                                id: download_item_downloaded_size
+                                                text: ListItemData.downloaded_size
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         ]

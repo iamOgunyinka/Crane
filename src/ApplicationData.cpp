@@ -13,7 +13,7 @@ ApplicationData::ApplicationData( QObject *parent ): QObject( parent )
 
 }
 
-DownloadInfo ApplicationData::application_housekeeping_info( "data/download_info.json" );
+QSharedPointer<DownloadInfo>    ApplicationData::m_pDownloadInfo ( new DownloadInfo( "data/download_info.json" ) );
 
 ApplicationData::~ApplicationData()
 {

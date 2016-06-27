@@ -16,6 +16,7 @@
 #include <QDebug>
 
 #include "Download.hpp"
+#include "ApplicationData.hpp"
 
 struct DownloadManager: public QObject
 {
@@ -46,7 +47,6 @@ struct CraneDownloader : public QObject
     Q_OBJECT
 public:
 	static QSharedPointer<DownloadManager> m_pDownloadManager;
-
 	static void addNewUrlWithManager( QString const & url, QString directory, DownloadManager *dm );
 public:
     Q_INVOKABLE static void addNewUrl( QString const & url, unsigned int threads, unsigned int download_limit,
@@ -61,5 +61,6 @@ public slots:
     void errorHandler( QString );
     void statusHandler( QString );
     void statusChangedHandler( QString );
+    Q_INVOKABLE void aboutToExit();
 };
 #endif /* DOWNLOADMANAGER_HPP_ */

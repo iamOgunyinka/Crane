@@ -10,9 +10,9 @@
 
 using namespace bb::cascades;
 
-DownloadItem::DownloadItem( QUrl url, qint64 low, qint64 high, QObject *parent ):
+DownloadItem::DownloadItem( QUrl url, qint64 low, qint64 high, qint64 bytes_written, QObject *parent ):
         QObject( parent ), url_( url ), low_( low ), high_( high ),
-        number_of_bytes_written_( low_ ), use_range_( 0 ), thread_number_( 0 ),
+        number_of_bytes_written_( bytes_written ), use_range_( 0 ), thread_number_( 0 ),
         use_lock_( true ), file_( NULL ), reply_( NULL )
 {
 }
@@ -28,6 +28,7 @@ QMutex                DownloadItem::mutex;
 void DownloadItem::startDownload()
 {
     if( number_of_bytes_written_ >= high_ ){
+        emit status( thread_number_, number_of_bytes_written_ );
         emit finished( thread_number_ );
         return;
     }
@@ -36,9 +37,10 @@ void DownloadItem::startDownload()
     request.setRawHeader( "USER-AGENT", "Mozilla Firefox" );
 
     if( use_range_ ){
-        QByteArray range = QByteArray("bytes=") + QByteArray::number( low_, 0xA ) + QByteArray( "-" )
-                + QByteArray::number( high_, 0xA );
+        QByteArray range = QByteArray("bytes=") + QByteArray::number( number_of_bytes_written_, 0xA ) + QByteArray( "-" )
+                + QByteArray::number( high_ );
         request.setRawHeader( "Range", range );
+        qDebug() << "Byte was specified: " << range;
     }
 
     reply_ = DownloadItem::GetNetworkManager()->get( request );
@@ -77,9 +79,11 @@ void DownloadItem::flush()
 
 void DownloadItem::stopDownload()
 {
-    reply_->abort();
+    if( !reply_ ) return;
 
+    reply_->abort();
     flush();
+
     QObject::disconnect( reply_, SIGNAL( readyRead() ), this, SLOT( readyReadHandler() ) );
     QObject::disconnect( reply_, SIGNAL( finished() ), this, SLOT( finishedHandler()) );
     QObject::disconnect( reply_, SIGNAL( downloadProgress(qint64,qint64)),
@@ -105,6 +109,7 @@ void DownloadItem::downloadProgressHandler( qint64 bytes_received, qint64 bytes_
     QNetworkReply *reply = qobject_cast<QNetworkReply*>( sender() );
 
     if ( reply->error() == QNetworkReply::NoError) {
+        if( bytes_received == bytes_total ) return;
         qint64 actual_received = ( number_of_bytes_written_ - low_ ) + bytes_received;
         if( actual_received == 0 ){
             return;
@@ -127,25 +132,28 @@ void DownloadItem::downloadProgressHandler( qint64 bytes_received, qint64 bytes_
             unit = "MB/s";
         }
         int percent = actual_received * 100 / actual_total;
-        emit status( number_of_bytes_written_, percent, speed, unit );
+        emit status( percent, speed, unit );
     }
 }
 
 DownloadComponent::DownloadComponent( QString address, QString directory, unsigned int number_of_threads, QObject *parent ):
         QObject( parent ), old_url( address ), new_url( old_url ),
-        file( NULL ), size_in_bytes( 0 ), accept_ranges( 0 ), byte_range_specified( 0 ),
-        max_number_of_threads( number_of_threads ), download_directory( directory )
+        file( NULL ), percentage( 0 ), size_in_bytes( 0 ), accept_ranges( 0 ),
+        byte_range_specified( 0 ), max_number_of_threads( number_of_threads ),
+        download_directory( directory )
 {
     if( download_directory.startsWith( "file://" ) ){
         download_directory.remove( "file://" );
     }
-
-//    QObject::connect( this, SIGNAL( status( int, QString, QString )), this, SLOT( updateStatus( int, QString, QString )));
+    timer.setInterval( 1000000 );
+    QObject::connect( &this->timer, SIGNAL( timeout() ), ApplicationData::m_pDownloadInfo.data(),
+            SLOT( writeDownloadSettingsFile() ) );
 }
 
 DownloadComponent::~DownloadComponent()
 {
-    stopDownload( old_url );
+    cleanUpOnExit();
+    emit closed();
 }
 
 Information *DownloadComponent::find( QString const & url )
@@ -170,18 +178,19 @@ void DownloadComponent::updateCreateDownloadInfo()
     download_info = new Information;
     download_info->original_url = old_url;
     download_info->redirected_url = new_url;
-    download_info->filename = file->fileName();
+    download_info->filename = this->filename;
+    download_info->path_to_file = download_directory + "/" + this->filename;
     download_info->accept_ranges = this->accept_ranges;
     download_info->size_of_file_in_bytes = this->size_in_bytes;
     download_info->time_started = this->time_started.toString();
     download_info->time_stopped = "-";
     download_info->download_status = Information::DownloadInProgress;
+    download_info->percentage = 0;
 
     for( int i = 0; i != thread_data.size(); ++i ){
         download_info->threads.push_back( this->thread_data[i].thread_info );
     }
     DownloadInfo::DownloadInfoMap().insert( old_url, QSharedPointer<Information>( download_info ) );
-    ApplicationData::application_housekeeping_info.writeDownloadSettingsFile();
 }
 
 void DownloadComponent::updateThread( unsigned int thread_number, qint64 bytes_written )
@@ -199,36 +208,102 @@ void DownloadComponent::updateDownloadInfo( Information *info, bool isDownloadCo
         info->download_status = Information::DownloadCompleted;
         this->time_completed = QDateTime::currentDateTime();
         info->time_stopped = this->time_completed.toString();
-        ApplicationData::application_housekeeping_info.writeDownloadSettingsFile();
     }
 }
+/*
 
+Download restarted.
+Byte was specified:  "bytes=2643737-8715713"
+Byte was specified:  "bytes=12722850-17431426"
+Byte was specified:  "bytes=20723630-26147139"
+Byte was specified:  "bytes=27543790-34862852"
+Written.
+
+Download restarted.
+Byte was specified:  "bytes=2653100-8715713"
+Byte was specified:  "bytes=13173907-17431426"
+Byte was specified:  "bytes=21364575-26147139"
+Byte was specified:  "bytes=27612319-34862852"
+Written.
+
+Byte was specified:  "bytes=2658335-8715713"
+Byte was specified:  "bytes=14271684-17431426"
+Byte was specified:  "bytes=22189912-26147139"
+Byte was specified:  "bytes=28505920-34862852"
+
+Download restarted.
+Byte was specified:  "bytes=3251834-8715713"
+Byte was specified:  "bytes=14301685-17431426"
+Byte was specified:  "bytes=23482793-26147139"
+Byte was specified:  "bytes=29736977-34862852"
+
+ */
 void DownloadComponent::startDownload()
 {
+    timer.start();
     if( DownloadInfo::DownloadInfoMap().contains( old_url ) ){
         QSharedPointer<Information> download_information = DownloadInfo::DownloadInfoMap().value( old_url );
 
-        if( download_information->download_status == Information::DownloadCompleted ){
-            emit finished( download_information->original_url );
-            return;
-        }
-
-        this->new_url = download_information->redirected_url;
+        bool download_was_completed = download_information->download_status == Information::DownloadCompleted;
         this->old_url = download_information->original_url;
-        QString filename = download_information->filename;
-        this->file = new QFile( filename );
+        this->new_url = download_information->redirected_url;
+
+        if( download_was_completed ){
+            this->filename = DownloadComponent::GetFilename( this->old_url, download_directory );
+            QString path_to_file = download_directory + "/" + this->filename;
+            QFile file( path_to_file );
+        // if the file was completed then and still exists, don't do anything.
+            if( file.exists() ){
+                emit finished( download_information->original_url );
+                return;
+            }
+            this->percentage = download_information->percentage;
+            file.close();
+            this->file = new QFile( path_to_file );
+        } else {
+            QFile file( download_information->path_to_file );
+            // if was completed halfway and it doesn't exist at its location -- create a new file.
+            if( !file.exists() ){
+                if( !file.open( QIODevice::ReadWrite ) ){
+                    emit error( file.errorString() );
+                    return;
+                }
+                // we created it successfully, now let's reset the file pointers.
+                this->percentage = 0;
+                download_information->threads[0].bytes_written = 0;
+                for( int i = 1; i != download_information->threads.size(); ++i ){
+                    download_information->threads[i].bytes_written = download_information->threads[i].thread_low_byte;
+                }
+            }
+            file.close();
+            this->file = new QFile( download_information->path_to_file );
+        }
 
         if( !( this->file->open( QIODevice::ReadWrite ) ) ){
             emit error( this->file->errorString() );
             delete this->file;
+            this->file = NULL;
             return;
         }
+
         this->accept_ranges = download_information->accept_ranges;
         this->size_in_bytes = download_information->size_of_file_in_bytes;
-        this->byte_range_specified = 1;
+        this->byte_range_specified = download_information->threads.size() > 1;
+
+        if( !this->file->resize( this->size_in_bytes ) ){
+            this->file->close();
+            delete this->file;
+            this->file = NULL;
+            emit error( this->file->errorString() );
+            return;
+        }
+
+        this->time_started = QDateTime::currentDateTime();
 
         Information::ThreadList list = download_information->threads;
+
         startDownloadImpl( list.size(), list );
+        qDebug() << "Download restarted.";
         return;
     }
 
@@ -242,11 +317,20 @@ void DownloadComponent::startDownload()
     QObject::connect( reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(errorHandler(QNetworkReply::NetworkError)));
 }
 
-void DownloadComponent::stopDownload( QString address )
+void DownloadComponent::cleanUpOnExit()
 {
-    if( address != old_url || address != new_url ){
-        return;
+    download_threads.clear();
+    if( file ){
+        file->close();
+        delete file;
+        file = NULL;
     }
+    qDebug() << "Now, let's write what we have.";
+    ApplicationData::m_pDownloadInfo->writeDownloadSettingsFile();
+}
+
+void DownloadComponent::stopDownload()
+{
     for( int i = 0; i != download_threads.size(); ++i ){
         download_threads[i]->terminate();
     }
@@ -254,8 +338,9 @@ void DownloadComponent::stopDownload( QString address )
     if( file ){
         file->close();
         delete file;
+        file = NULL;
     }
-    ApplicationData::application_housekeeping_info.writeDownloadSettingsFile();
+    emit stopped();
 }
 
 void DownloadComponent::headFinishedHandler()
@@ -307,6 +392,7 @@ void DownloadComponent::finishedHandler( unsigned int thread_number )
     updateDownloadInfo( find( old_url ), true );
     file->close();
     delete file;
+    file = NULL;
     emit finished( old_url );
 }
 
@@ -317,14 +403,15 @@ void DownloadComponent::errorHandler( QString message )
 
 void DownloadComponent::addNewUrlImpl( QString const & url, QNetworkReply *response )
 {
-
     this->new_url = url;
-    QString filename = DownloadComponent::GetFilename( this->new_url, download_directory );
+    this->filename = DownloadComponent::GetFilename( this->new_url, download_directory );
+    this->percentage = 0;
 
-    this->file = new QFile( filename );
+    this->file = new QFile( download_directory + "/" + this->filename );
     if( !( this->file->open( QIODevice::ReadWrite ) ) ){
         emit error( this->file->errorString() );
         delete this->file;
+        file = NULL;
         return;
     }
 
@@ -344,7 +431,7 @@ void DownloadComponent::addNewUrlImpl( QString const & url, QNetworkReply *respo
     if( !this->file->resize( this->size_in_bytes ) ){
         this->file->close();
         delete this->file;
-
+        this->file = NULL;
         emit error( this->file->errorString() );
         return;
     }
@@ -371,18 +458,17 @@ void DownloadComponent::startDownloadImpl( int threads_to_use, QList<Information
     {
         QThread *new_thread = new QThread( this );
         DownloadItem *download = NULL;
-        this->percentage.push_back( 0 );
 
         if( thread_list_empty ){
             // last/only thread to spawn? Download file to the end OR set no limit at all if size is unknown
             if( i == threads_to_use ){
                 // mark all the threads as "not finished"
                 thread_data.push_back( ThreadData{ Information::ThreadInfo{ byte_begin, size_in_bytes, byte_begin, i }, 0 } );
-                download = new DownloadItem( QUrl( this->new_url ), byte_begin, this->size_in_bytes, new_thread );
+                download = new DownloadItem( QUrl( this->new_url ), byte_begin, this->size_in_bytes, byte_begin, new_thread );
             } else {
                 byte_end += increment;
                 thread_data.push_back( ThreadData{ Information::ThreadInfo{ byte_begin, byte_end, byte_begin, i }, 0 } );
-                download = new DownloadItem( QUrl( this->new_url ), byte_begin, byte_end, new_thread );
+                download = new DownloadItem( QUrl( this->new_url ), byte_begin, byte_end, byte_begin, new_thread );
             }
             byte_begin = byte_end + 1;
             download->setThreadNumber( i );
@@ -396,27 +482,27 @@ void DownloadComponent::startDownloadImpl( int threads_to_use, QList<Information
             }
         } else {
             Information::ThreadInfo thread_info = thread_info_list.at( i - 1 );
-            download = new DownloadItem( this->new_url, thread_info.thread_low_byte,
-                    thread_info.thread_high_byte, new_thread );
+            download = new DownloadItem{ this->new_url, thread_info.thread_low_byte, thread_info.thread_high_byte,
+                thread_info.bytes_written, new_thread };
+            thread_data.push_back( ThreadData{ Information::ThreadInfo{
+                thread_info.thread_low_byte, thread_info.thread_high_byte, thread_info.bytes_written, i }, 0 } );
             download->setThreadNumber( thread_info.thread_number );
             download->setFile( this->file );
             download->acceptRange( this->accept_ranges );
-            download->useLock();
+            download->useLock( thread_info_list.size() != 1 );
         }
 
         QObject::connect( new_thread, SIGNAL( started() ), download, SLOT( startDownload() ) );
         QObject::connect( download, SIGNAL( status( unsigned int, qint64 )), this, SLOT( updateThread( unsigned int, qint64 )) );
 
-        QObject::connect( download, SIGNAL( status( unsigned int, int, double, QString )),
-                this, SLOT( statusHandler( unsigned int, int, double, QString ) ) );
-
+        QObject::connect( download, SIGNAL( status( int, double, QString )), this, SLOT( statusHandler( int, double, QString ) ) );
         QObject::connect( download, SIGNAL( error( QString )), this, SLOT( errorHandler( QString ) ) );
-        QObject::connect( download, SIGNAL( finished( unsigned int ) ), this,
-                SLOT( finishedHandler( unsigned int ) ) );
+        QObject::connect( download, SIGNAL( finished( unsigned int ) ), this, SLOT( finishedHandler( unsigned int ) ) );
         QObject::connect( download, SIGNAL( error( QString )), new_thread, SLOT( quit() ) );
         QObject::connect( download, SIGNAL( finished( unsigned int ) ), new_thread, SLOT( quit() ) );
         QObject::connect( new_thread, SIGNAL( terminated() ), download, SLOT( stopDownload() ) );
         QObject::connect( new_thread, SIGNAL( finished() ), new_thread, SLOT( deleteLater() ) );
+        QObject::connect( this, SIGNAL( closed() ), new_thread, SLOT( quit() ) );
 
         new_thread->start();
         this->download_threads.push_back( new_thread );
@@ -424,23 +510,17 @@ void DownloadComponent::startDownloadImpl( int threads_to_use, QList<Information
     emit downloadStarted( old_url );
 }
 
-void DownloadComponent::statusHandler( unsigned int thread_no, int percent, double speed, QString unit )
+void DownloadComponent::statusHandler( int percent, double speed, QString unit )
 {
-    /*
-    this->percentage[ thread_no - 1 ] = percent;
-    percent = 0;
-    for( int i = 0; i != percentage.size(); ++i ){
-        percent += percentage[i];
+    if( thread_data.size() != 0 ){
+        percentage += ( percent / thread_data.size() );
     }
-
     Information *info = find( old_url );
     if( info != NULL ) {
         info->percentage = percent / 4;
         info->speed = QString::number( speed ) + unit;
     }
-
     emit statusChanged( old_url );
-    */
 }
 
 QUrl DownloadComponent::redirectUrl( QUrl const & possibleRedirectUrl, QUrl const & oldRedirectUrl ) const
@@ -470,18 +550,19 @@ QString DownloadComponent::GetFilename( QString const & url, QString const & dir
         basename = new_name + ".nil";
     }
 
-    QString filepath = directory + QString( "/" ) + basename;
-    if( QFile::exists( filepath ) ){
+    if( QFile::exists( directory + QString( "/" ) + basename ) ){
         int index_of_extension = basename.lastIndexOf( '.' );
         QString filename = basename.left( index_of_extension ),
                 extension = QString::fromStdString( basename.toStdString().substr( index_of_extension + 1 ) );
 
         int i = 1;
-        filepath = directory + QString( "/" ) + filename + QString( "(%1).%2" ).arg( i ).arg( extension );
+        QString filepath = directory + QString( "/" ) + filename + QString( "(%1).%2" ).arg( i ).arg( extension );
         while( QFile::exists( filepath ) ){
             ++i;
             filepath = directory + QString( "/" ) + filename + QString( "(%1).%2" ).arg( i ).arg( extension );
         }
+        filename = filename + QString( "(%1).%2" ).arg( i ).arg( extension );
+        return filename;
     }
-    return filepath;
+    return basename; // actually, it's the filename
 }

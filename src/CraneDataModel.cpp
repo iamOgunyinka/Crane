@@ -10,7 +10,7 @@
 
 CraneDataModel::CraneDataModel( QObject *parent ): DataModel( parent ), i( 0 )
 {
-
+    InstallExtensions();
 }
 
 CraneDataModel::~CraneDataModel()
@@ -47,10 +47,15 @@ QVariant CraneDataModel::data( QVariantList const & indexPath )
         QString url = DownloadInfo::DownloadInfoMap().keys().at( indexPath.at( 0 ).toInt() );
         QSharedPointer<Information> information = DownloadInfo::DownloadInfoMap().value( url );
         QVariantMap data_to_send;
+
         data_to_send[ "original_url" ] = url;
-        data_to_send[ "file_name" ] = information->filename;
-        data_to_send[ "file_size"] = QString::number( information->size_of_file_in_bytes );
+        data_to_send[ "filename" ] = information->filename;
+        data_to_send[ "size"] = QString::number( information->size_of_file_in_bytes );
         data_to_send[ "status" ] = Information::DownloadStatusToString( information->download_status );
+        data_to_send["percentage"] = information->percentage;
+        data_to_send[ "speed" ] = information->speed;
+        data_to_send[ "image" ] = GetDownloadLogoForFileExtension( information->filename );
+
         qint64 x = 0;
         for( int i = 0; i != information->threads.size(); ++i ){
             x += information->threads[i].bytes_written;
@@ -59,6 +64,31 @@ QVariant CraneDataModel::data( QVariantList const & indexPath )
         return data_to_send;
     }
     return QVariant();
+}
+
+QMap<QString, QString> CraneDataModel::ExtensionLogoMap;
+void CraneDataModel::InstallExtensions()
+{
+    ExtensionLogoMap.insert( QString( "mp3" ), QString( "music.png" ) );
+    ExtensionLogoMap.insert( QString( "mp4" ), QString( "video.png" ) );
+    ExtensionLogoMap.insert( QString( "png" ), QString( "picture.png" ) );
+    ExtensionLogoMap.insert( QString( "jpeg" ), QString( "picture.png" ) );
+    ExtensionLogoMap.insert( QString( "zip" ), QString( "other.png" ) );
+    ExtensionLogoMap.insert( QString( "pdf" ), QString( "doc.png" ) );
+    ExtensionLogoMap.insert( QString( "doc" ), QString( "doc.png" ) );
+    ExtensionLogoMap.insert( QString( "exe" ), QString( "other.png" ) );
+    ExtensionLogoMap.insert( QString( "jpg" ), QString( "picture.png" ) );
+}
+
+QString  CraneDataModel::GetDownloadLogoForFileExtension( QString const & filename )
+{
+    int index_of_extension = filename.lastIndexOf( '.' );
+    QString extension = QString::fromStdString( filename.toStdString().substr( index_of_extension + 1 ) );
+
+    if( CraneDataModel::ExtensionLogoMap.contains( extension ) ){
+        return CraneDataModel::ExtensionLogoMap.value( extension );
+    }
+    return QString( "other.png" );
 }
 
 CraneFilteredDataModel::CraneFilteredDataModel( bb::cascades::DataModel *data_model, QObject *parent ):
@@ -99,5 +129,5 @@ void CraneFilteredDataModel::changeView( int view )
 
 void CraneFilteredDataModel::refreshView( QString url )
 {
-    qDebug() << "Refresh called with: " << url;
+    qDebug() << "Called to refresh view with: " << url;
 }

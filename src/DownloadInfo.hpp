@@ -30,10 +30,11 @@ struct Information
         DownloadInProgress
     };
     static QString DownloadStatusToString( Information::DownloadStatus status );
-
+    static DownloadStatus IntToStatus( int status );
     QString         original_url;
     QString         redirected_url;
     QString         filename;
+    QString         path_to_file;
     QString         time_started;
     QString         time_stopped;
     QString         speed;

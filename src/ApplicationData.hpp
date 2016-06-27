@@ -18,7 +18,7 @@ public:
     ApplicationData( QObject *parent = NULL );
     virtual ~ApplicationData();
 
-    static DownloadInfo application_housekeeping_info;
+    static QSharedPointer<DownloadInfo>    m_pDownloadInfo;
 };
 
 #endif /* APPLICATIONDATA_HPP_ */

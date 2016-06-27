@@ -36,6 +36,7 @@ simulator {
 
 config_pri_assets {
     OTHER_FILES += \
+        $$quote($$BASEDIR/assets/images/012. Info.png) \
         $$quote($$BASEDIR/assets/images/5_content_new.png) \
         $$quote($$BASEDIR/assets/images/5_content_remove.png) \
         $$quote($$BASEDIR/assets/images/add.png) \
