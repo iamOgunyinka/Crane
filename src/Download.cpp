@@ -168,22 +168,6 @@ QSharedPointer<Information> DownloadComponent::urlSearch( QString const & url )
     return QSharedPointer<Information>( NULL );
 }
 
-/*
-void DownloadComponent::createDownloadInfo()
-{
-    download_information->redirected_url = new_url;
-    download_information->filename = this->filename;
-    download_information->path_to_file = download_directory + "/" + this->filename;
-    download_information->accept_ranges = this->accept_ranges;
-    download_information->size_of_file_in_bytes = this->size_in_bytes;
-    download_information->time_started = this->time_started.toString();
-    download_information->time_stopped = "-";
-    download_information->download_status = Information::DownloadInProgress;
-    download_information->percentage = this->percentage;
-
-}
-*/
-
 void DownloadComponent::updateThread( unsigned int thread_number, qint64 bytes_written )
 {
     download_information->thread_information_list[thread_number-1].bytes_written = bytes_written;
@@ -259,7 +243,7 @@ void DownloadComponent::startDownload()
     }
 
     QNetworkRequest request;
-    request.setUrl( download_information->original_url );
+    request.setUrl( download_information->redirected_url );
     request.setRawHeader( "USER-AGENT", "Mozilla Firefox" );
 
     QNetworkReply *reply = DownloadItem::GetNetworkManager()->head( request );
@@ -276,6 +260,7 @@ void DownloadComponent::cleanUpOnExit()
         delete file;
         file = NULL;
     }
+    qDebug() << "writing file.";
     ApplicationData::m_pDownloadInfo->writeDownloadSettingsFile();
 }
 
@@ -412,7 +397,7 @@ void DownloadComponent::addNewUrlImpl( QString const & url, QNetworkReply *respo
         threads_to_use = max_number_of_threads;
     }
 
-    DownloadInfo::DownloadInfoMap().insert( download_information->time_started, download_information);
+    DownloadInfo::DownloadInfoMap().insert( download_information->time_started, download_information );
     startDownloadImpl( threads_to_use );
 }
 

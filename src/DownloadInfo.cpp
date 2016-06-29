@@ -105,8 +105,8 @@ void DownloadInfo::writeDownloadSettingsFile()
         item_map["new_url"] = item_info->redirected_url;
         item_map["filename"] = item_info->filename;
         item_map["path_to_file"] = item_info->path_to_file;
-        item_map["time_started"] = item_info->time_started.toString();
-        item_map["time_completed"] = item_info->time_stopped.toString();
+        item_map["time_started"] = item_info->time_started.toString( date_format );
+        item_map["time_completed"] = item_info->time_stopped.toString( date_format );
         item_map["speed"] = item_info->speed;
         item_map["status"] = ( unsigned int ) item_info->download_status;
         item_map["percentage"] = item_info->percentage;
@@ -124,9 +124,9 @@ void DownloadInfo::writeDownloadSettingsFile()
             thread_map["bytes_written"] = item_info->thread_information_list.at( x ).bytes_written;
             thread_info_vlist.push_back( thread_map );
         }
-
+        qDebug() << "Time started: " << item_map["time_started"].toString();
         item_map["threads"] = thread_info_vlist;
-        root.insert( item_info->time_started.toString( date_format ), item_map );
+        root.insert( item_map[ "time_started" ].toString(), item_map );
     }
 
     QFile file( filename_ );
@@ -145,6 +145,7 @@ void DownloadInfo::writeDownloadSettingsFile()
     if( jda.hasError() ){
         qDebug() << "We have an error: " << jda.error().errorMessage();
     }
+
     file.close();
 }
 

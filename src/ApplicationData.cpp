@@ -2,14 +2,13 @@
  * ApplicationData.cpp
  *
  *  Created on: Jun 26, 2016
- *      Author: adonai
+ *      Author: Joshua
  */
 
 #include <src/ApplicationData.hpp>
 
 ApplicationData::ApplicationData( QObject *parent ): QObject( parent )
 {
-    // TODO Auto-generated constructor stub
 
 }
 
