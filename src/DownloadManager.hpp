@@ -24,11 +24,11 @@ struct DownloadManager: public QObject
 
 public slots:
     void finishedHandler( QString );
-    void errorHandler( QString );
+    void errorHandler( QString, QString );
     void downloadStartedHandler( QString url );
     void statusChangedHandler( QString url );
 signals:
-    void error( QString );
+    void error( QString, QString );
     void finished( QString );
     void status( QString );
     void statusChanged( QString );
@@ -58,7 +58,7 @@ signals:
     void status( QString );
     void statusChanged( QString );
 public slots:
-    void errorHandler( QString );
+    void errorHandler( QString, QString );
     void statusHandler( QString );
     void statusChangedHandler( QString );
     Q_INVOKABLE void aboutToExit();

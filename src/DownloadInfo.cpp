@@ -23,8 +23,11 @@ DownloadInfo::~DownloadInfo()
 {
 }
 
-QMap<QString, QSharedPointer<Information> > DownloadInfo::download_info_map;
-QMap<QString, QSharedPointer<Information> > & DownloadInfo::DownloadInfoMap(){ return DownloadInfo::download_info_map; }
+QMap<QDateTime, QSharedPointer<Information> > DownloadInfo::download_info_map;
+QMap<QDateTime, QSharedPointer<Information> > & DownloadInfo::DownloadInfoMap()
+{
+    return DownloadInfo::download_info_map;
+}
 
 void DownloadInfo::readDownloadSettingsFile()
 {
@@ -48,6 +51,7 @@ void DownloadInfo::readDownloadSettingsFile()
         return;
     }
 
+    QString const date_format = "dd.MM.yyyy hh:mm:ss.zzz";
     QVariantMap file_content = data.toMap();
     QList<QString> urls = file_content.keys();
 
@@ -60,11 +64,8 @@ void DownloadInfo::readDownloadSettingsFile()
         info->redirected_url = key_value[ "new_url"].toString();
         info->filename = key_value["filename"].toString();
         info->path_to_file = key_value["path_to_file"].toString();
-        info->time_started = key_value["time_started"].toString();
-        info->time_stopped = key_value["time_completed"].toString();
         info->percentage = key_value[ "percentage" ].toInt();
         info->speed = key_value["speed"].toString();
-        info->percentage = key_value["percentage"].toInt();
         info->accept_ranges = key_value["accept_ranges"].toUInt();
         info->download_status = Information::IntToStatus( key_value["status"].toInt() );
         info->size_of_file_in_bytes = key_value["file_size"].toUInt();
@@ -76,12 +77,15 @@ void DownloadInfo::readDownloadSettingsFile()
             thread_info.thread_low_byte = thread_info_map["low_byte"].toUInt();
             thread_info.thread_high_byte = thread_info_map["high_byte"].toUInt();
             thread_info.bytes_written = thread_info_map["bytes_written"].toUInt();
+            thread_info.percentage = thread_info_map["percentage"].toUInt();
             thread_info.thread_number = thread_info_map["thread_number"].toUInt();
 
-            info->threads.push_back( thread_info );
+            info->thread_information_list.push_back( thread_info );
         }
 
-        DownloadInfo::download_info_map.insert( info->original_url, info );
+        info->time_started = QDateTime::fromString( key_value["time_started"].toString(), date_format );
+        info->time_stopped = QDateTime::fromString( key_value["time_completed"].toString(), date_format );
+        DownloadInfo::download_info_map.insert( info->time_started, info );
     }
     emit finished();
 }
@@ -89,40 +93,40 @@ void DownloadInfo::readDownloadSettingsFile()
 void DownloadInfo::writeDownloadSettingsFile()
 {
     QVariantMap root;
-    QList<QString> keys = download_info_map.keys();
+    Information::IteratorForDownloadMap map_iter = download_info_map.begin();
 
-    Q_ASSERT( keys.size() == download_info_map.size() );
+    QString const date_format = "dd.MM.yyyy hh:mm:ss.zzz";
 
-    for( int i = 0; i != keys.size(); ++i )
+    for( ; map_iter != download_info_map.end(); ++map_iter )
     {
-        QSharedPointer<Information> item_info = download_info_map[ keys[i] ];
+        QSharedPointer<Information> item_info = map_iter.value();
         QVariantMap item_map;
         item_map["original_url"] = item_info->original_url;
         item_map["new_url"] = item_info->redirected_url;
         item_map["filename"] = item_info->filename;
         item_map["path_to_file"] = item_info->path_to_file;
-        item_map["time_started"] = item_info->time_started;
-        item_map["time_completed"] = item_info->time_stopped;
+        item_map["time_started"] = item_info->time_started.toString();
+        item_map["time_completed"] = item_info->time_stopped.toString();
         item_map["speed"] = item_info->speed;
+        item_map["status"] = ( unsigned int ) item_info->download_status;
         item_map["percentage"] = item_info->percentage;
-
-        QVariantList thread_info_list;
-        for( int i = 0; i != item_info->threads.size(); ++i )
-        {
-            QVariantMap thread_map;
-            thread_map["thread_number"] = item_info->threads.at( i ).thread_number;
-            thread_map["low_byte"] = item_info->threads.at( i ).thread_low_byte;
-            thread_map["high_byte"] = item_info->threads.at( i ).thread_high_byte;
-            thread_map["bytes_written"] = item_info->threads.at( i ).bytes_written;
-            thread_info_list.push_back( thread_map );
-        }
-
-        item_map["threads"] = thread_info_list;
         item_map["accept_ranges"] = item_info->accept_ranges;
         item_map["file_size"] = item_info->size_of_file_in_bytes;
-        item_map["status"] = ( unsigned int ) item_info->download_status;
 
-        root.insert( item_info->original_url, item_map );
+        QVariantList thread_info_vlist;
+        for( int x = 0; x != item_info->thread_information_list.size(); ++x )
+        {
+            QVariantMap thread_map;
+            thread_map["thread_number"] = item_info->thread_information_list.at( x ).thread_number;
+            thread_map["low_byte"] = item_info->thread_information_list.at( x ).thread_low_byte;
+            thread_map["high_byte"] = item_info->thread_information_list.at( x ).thread_high_byte;
+            thread_map["percentage"] = item_info->thread_information_list.at( x ).percentage;
+            thread_map["bytes_written"] = item_info->thread_information_list.at( x ).bytes_written;
+            thread_info_vlist.push_back( thread_map );
+        }
+
+        item_map["threads"] = thread_info_vlist;
+        root.insert( item_info->time_started.toString( date_format ), item_map );
     }
 
     QFile file( filename_ );

@@ -1,5 +1,5 @@
 /*
- * NetworkManager.cpp
+ * DownloadManager.cpp
  *
  *  Created on: Jun 17, 2016
  *      Author: Joshua
@@ -27,10 +27,10 @@ DownloadManager::~DownloadManager()
 
 }
 
-void DownloadManager::errorHandler( QString what )
+void DownloadManager::errorHandler( QString message, QString url )
 {
-    qDebug() << "Error: " << what;
-    emit error( what );
+    qDebug() << "Error: " << message;
+    emit error( message, url );
 }
 
 void DownloadManager::finishedHandler( QString url )
@@ -66,8 +66,8 @@ CraneDownloader::CraneDownloader(): QObject( NULL )
 //    }
     ApplicationData::m_pDownloadInfo->readDownloadSettingsFile();
 
-    QObject::connect( CraneDownloader::m_pDownloadManager.data(), SIGNAL( error( QString ) ),
-            this, SLOT( errorHandler( QString ) ) );
+    QObject::connect( CraneDownloader::m_pDownloadManager.data(), SIGNAL( error( QString, QString ) ),
+            this, SLOT( errorHandler( QString, QString ) ) );
     QObject::connect( CraneDownloader::m_pDownloadManager.data(), SIGNAL( status( QString ) ),
             this, SLOT( statusHandler( QString ) ) );
     QObject::connect( CraneDownloader::m_pDownloadManager.data(), SIGNAL( finished( QString ) ),
@@ -76,27 +76,22 @@ CraneDownloader::CraneDownloader(): QObject( NULL )
             this, SLOT( statusChangedHandler( QString ) ) );
 }
 
-/*
-Byte was specified:  "bytes=0-1278091"
-Byte was specified:  "bytes=1278092-2556182"
-Byte was specified:  "bytes=2556183-3834273"
-Byte was specified:  "bytes=3834274-5112367"
-
- */
 CraneDownloader::~CraneDownloader(){ }
 
 void CraneDownloader::addNewUrlWithManager( QString const & address, QString location, DownloadManager *dm )
 {
+    QString new_uri_address =  QUrl::fromUserInput( address ).toString();
+
 	QThread *new_download_thread = new QThread();
-	DownloadComponent *new_download = new DownloadComponent( address, location,
+	DownloadComponent *new_download = new DownloadComponent( new_uri_address, location,
 	        DownloadManager::max_number_of_threads, new_download_thread );
 
-	DownloadManager::active_download_list.insert( address, new_download );
+	DownloadManager::active_download_list.insert( new_uri_address, new_download );
 
 	QObject::connect( new_download_thread, SIGNAL( started() ), new_download, SLOT( startDownload() ) );
     QObject::connect( new_download, SIGNAL( statusChanged( QString ) ), CraneDownloader::m_pDownloadManager.data(),
             SLOT( statusChangedHandler( QString ) ) );
-	QObject::connect( new_download, SIGNAL( error( QString )), dm, SLOT( errorHandler( QString )) );
+	QObject::connect( new_download, SIGNAL( error( QString, QString )), dm, SLOT( errorHandler( QString, QString )) );
 	QObject::connect( new_download, SIGNAL( downloadStarted( QString )), dm,
 	        SLOT( downloadStartedHandler( QString )) );
 	QObject::connect( new_download, SIGNAL( finished( QString ) ), dm, SLOT( finishedHandler( QString ) ) );
@@ -127,8 +122,9 @@ void CraneDownloader::addNewUrl( QString const & address, unsigned int threads_t
     addNewUrlWithManager( address, location, CraneDownloader::m_pDownloadManager.data() );
 }
 
-void CraneDownloader::errorHandler( QString what )
+void CraneDownloader::errorHandler( QString what, QString url )
 {
+    DownloadManager::active_download_list.remove( url );
     emit error( what );
 }
 
@@ -150,5 +146,4 @@ void CraneDownloader::aboutToExit()
         component->stopDownload();
     }
     ApplicationData::m_pDownloadInfo->writeDownloadSettingsFile();
-    qDebug() << "Closed.";
 }

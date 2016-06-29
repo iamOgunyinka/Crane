@@ -10,17 +10,20 @@
 
 #include <QObject>
 #include <QMap>
+#include <QDate>
 #include <QSharedPointer>
 
 struct Information
 {
-    typedef struct  _ThreadInfo {
+    typedef QMap<QDateTime, QSharedPointer<Information> >::iterator IteratorForDownloadMap;
+    struct ThreadInfo {
         qint64       thread_low_byte; // will be where last download stopped
         qint64       thread_high_byte; // byte destination in the range [ thread_low_byte - thread_high_byte ]
         qint64       bytes_written;
+        unsigned int percentage;
         unsigned int thread_number;
-    } ThreadInfo;
-    typedef QList<ThreadInfo> ThreadList;
+    };
+    typedef QList<ThreadInfo> ThreadInfoList;
 
     enum DownloadStatus {
         DownloadCompleted = 0,
@@ -35,14 +38,14 @@ struct Information
     QString         redirected_url;
     QString         filename;
     QString         path_to_file;
-    QString         time_started;
-    QString         time_stopped;
+    QDateTime       time_started;
+    QDateTime       time_stopped;
     QString         speed;
     DownloadStatus  download_status;
     unsigned int    percentage;
 
     unsigned int    accept_ranges;
-    ThreadList      threads;
+    ThreadInfoList  thread_information_list;
     qint64          size_of_file_in_bytes;
 };
 
@@ -54,9 +57,9 @@ class DownloadInfo: public QObject
 public:
     DownloadInfo( QString const & filename, QObject *parent = NULL );
     virtual ~DownloadInfo();
-    static QMap<QString, QSharedPointer<Information> > & DownloadInfoMap();
+    static QMap<QDateTime, QSharedPointer<Information> > & DownloadInfoMap();
 private:
-    static QMap<QString, QSharedPointer<Information> > download_info_map;
+    static QMap<QDateTime, QSharedPointer<Information> > download_info_map;
 public slots:
     void readDownloadSettingsFile();
     void writeDownloadSettingsFile();

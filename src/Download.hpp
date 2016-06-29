@@ -43,7 +43,7 @@ public slots:
     void startDownload();
     void stopDownload();
 signals:
-    void finished( unsigned int );
+    void finished();
     void stopped( unsigned int );
     void error( QString );
     void status( unsigned int, qint64 );
@@ -68,41 +68,27 @@ class DownloadComponent: public QObject
 {
     Q_OBJECT
 
-    struct ThreadData {
-        Information::ThreadInfo thread_info;
-        unsigned int thread_completed;
-    };
 public:
-    QString             old_url;
-    QString             new_url;
-    QFile               *file;
-    QList<QThread*>     download_threads;
-    QList<ThreadData>   thread_data;
-    unsigned int        percentage;
-    qint64              size_in_bytes;
-    unsigned int        accept_ranges;
-    unsigned int        byte_range_specified;
+    QFile                       *file;
+    QList<QThread*>             download_threads;
+    unsigned int                byte_range_specified;
+    QSharedPointer<Information> download_information;
 
     unsigned int        max_number_of_threads;
     QString             download_directory;
-    QString             filename;
-    QDateTime           time_started;
-    QDateTime           time_completed;
     QTimer              timer;
 public slots:
     void errorHandler( QString );
     void errorHandler( QNetworkReply::NetworkError );
-    void finishedHandler( unsigned int );
+    void finishedHandler();
     void headFinishedHandler();
     void updateThread( unsigned int, qint64 );
     void statusHandler( int, double, QString );
-    void updateDownloadInfo( Information *, bool isCompleted = false );
-    void updateCreateDownloadInfo();
     void startDownload();
     void cleanUpOnExit();
     void stopDownload();
 signals:
-    void error( QString );
+    void error( QString message, QString url );
     void finished( QString );
     void downloadStarted( QString );
     void statusChanged( QString );
@@ -114,10 +100,10 @@ public:
     static QString GetFilename( QString const & url, QString const & parent_directory );
 
 private:
-    void startDownloadImpl( int threads_to_use,
-            QList<Information::ThreadInfo> thread_info_list = QList<Information::ThreadInfo>() );
+    void startDownloadImpl( int threads_to_use );
     void addNewUrlImpl( QString const & url, QNetworkReply *response );
     QUrl redirectUrl( QUrl const & possibleRedirectUrl, QUrl const & oldRedirectUrl) const;
     Information* find( QString const & url );
+    QSharedPointer<Information> urlSearch( QString const & url );
 };
 #endif /* DOWNLOAD_HPP_ */

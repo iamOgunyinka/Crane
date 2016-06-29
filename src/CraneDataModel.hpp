@@ -27,6 +27,7 @@ public:
     static QString  GetDownloadLogoForFileExtension( QString const & filename );
     static QMap<QString, QString> ExtensionLogoMap;
     static void InstallExtensions();
+    static QString ConvertByte( qint64 );
     virtual ~CraneDataModel();
 private:
     int i;

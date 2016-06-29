@@ -1,13 +1,14 @@
 1
-19
-images/012. Info.png
+21
 images/5_content_new.png
 images/5_content_remove.png
-images/add.png
+images/all.png
 images/close.png
 images/delete.png
 images/doc.png
+images/exe.png
 images/home.png
+images/info.png
 images/music.png
 images/other.png
 images/pause.png
@@ -17,5 +18,6 @@ images/settings.png
 images/stop.png
 images/stop_2.png
 images/video.png
+images/zip.png
 main.qml
 settings.qml
