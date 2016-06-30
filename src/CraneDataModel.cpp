@@ -44,8 +44,8 @@ QString CraneDataModel::itemType( QVariantList const & indexPath )
 QVariant CraneDataModel::data( QVariantList const & indexPath )
 {
     if( indexPath.size() == 1 ){
-        QDateTime date_time = DownloadInfo::DownloadInfoMap().keys().at( indexPath.at( 0 ).toInt() );
-        QSharedPointer<Information> information = DownloadInfo::DownloadInfoMap().value( date_time );
+        Information::DateTime date_time = DownloadInfo::DownloadInfoMap().keys().at( indexPath.at( 0 ).toInt() );
+        QSharedPointer<Information> information = DownloadInfo::DownloadInfoMap().value( date_time.date_time_ );
         QVariantMap data_to_send;
 
         data_to_send[ "original_url" ] = information->original_url;
@@ -61,6 +61,9 @@ QVariant CraneDataModel::data( QVariantList const & indexPath )
             x += information->thread_information_list[i].bytes_written;
         }
         data_to_send[ "downloaded_size" ] = CraneDataModel::ConvertByte( x );
+        data_to_send["path"] = information->path_to_file;
+        data_to_send["resumable"] = information->accept_ranges;
+
         return data_to_send;
     }
     return QVariant();

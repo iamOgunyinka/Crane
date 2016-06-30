@@ -260,7 +260,6 @@ void DownloadComponent::cleanUpOnExit()
         delete file;
         file = NULL;
     }
-    qDebug() << "writing file.";
     ApplicationData::m_pDownloadInfo->writeDownloadSettingsFile();
 }
 
@@ -324,6 +323,7 @@ void DownloadComponent::finishedHandler()
     }
 
     download_information->download_status = Information::DownloadCompleted;
+    download_information->percentage = 100;
     download_information->time_stopped = QDateTime::currentDateTime();
 
     file->close();

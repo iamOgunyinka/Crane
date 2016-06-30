@@ -36,6 +36,7 @@ simulator {
 
 config_pri_assets {
     OTHER_FILES += \
+        $$quote($$BASEDIR/assets/details.qml) \
         $$quote($$BASEDIR/assets/images/5_content_new.png) \
         $$quote($$BASEDIR/assets/images/5_content_remove.png) \
         $$quote($$BASEDIR/assets/images/all.png) \
@@ -52,7 +53,6 @@ config_pri_assets {
         $$quote($$BASEDIR/assets/images/play.png) \
         $$quote($$BASEDIR/assets/images/settings.png) \
         $$quote($$BASEDIR/assets/images/stop.png) \
-        $$quote($$BASEDIR/assets/images/stop_2.png) \
         $$quote($$BASEDIR/assets/images/video.png) \
         $$quote($$BASEDIR/assets/images/zip.png) \
         $$quote($$BASEDIR/assets/main.qml) \

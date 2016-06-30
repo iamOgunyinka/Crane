@@ -20,7 +20,7 @@ class Settings: public QObject
     Q_PROPERTY( int max_download READ maxDownload WRITE setMaxDownload NOTIFY maxDownloadChanged )
     Q_PROPERTY( int max_thread READ maxThread WRITE setMaxThread NOTIFY maxThreadChanged )
     Q_PROPERTY( int app_notify READ appNotification WRITE setAppNotification NOTIFY appNotificationChanged )
-    Q_PROPERTY( int pause_on_error READ pauseOnError WRITE setPauseOnError NOTIFY pauseOnErrorChanged )
+    Q_PROPERTY( int autocopy_from_clipboard READ clipboardText WRITE useClipboardText NOTIFY clipboardUseChanged )
 public:
 
 private:
@@ -29,7 +29,7 @@ private:
     int     max_download;
     int     max_thread;
     int     app_notify;
-    int     pause_on_error;
+    int     autocopy_from_clipboard;
     FILE    *file;
 
     void writeSettings();
@@ -41,14 +41,14 @@ public:
     int maxThread() const { return max_thread; }
     int maxDownload() const { return max_download; }
     int appNotification() const { return app_notify; }
-    int pauseOnError() const { return pause_on_error; }
+    int clipboardText() const { return autocopy_from_clipboard; }
     QString location() const { return QString( download_directory ); }
 
     void setNewLocation( QString loc );
     void setMaxDownload( int m );
     void setMaxThread( int t );
     void setAppNotification( int m );
-    void setPauseOnError( int e );
+    void useClipboardText( int e );
 
 signals:
     void error( QString message );
@@ -56,6 +56,7 @@ signals:
     void maxThreadChanged( int );
     void appNotificationChanged( int );
     void pauseOnErrorChanged( int );
+    void clipboardUseChanged( int );
     void downloadLocationChanged( QString );
 };
 

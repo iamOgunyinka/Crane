@@ -23,8 +23,8 @@ DownloadInfo::~DownloadInfo()
 {
 }
 
-QMap<QDateTime, QSharedPointer<Information> > DownloadInfo::download_info_map;
-QMap<QDateTime, QSharedPointer<Information> > & DownloadInfo::DownloadInfoMap()
+QMap<Information::DateTime, QSharedPointer<Information> > DownloadInfo::download_info_map;
+QMap<Information::DateTime, QSharedPointer<Information> > & DownloadInfo::DownloadInfoMap()
 {
     return DownloadInfo::download_info_map;
 }
@@ -124,7 +124,6 @@ void DownloadInfo::writeDownloadSettingsFile()
             thread_map["bytes_written"] = item_info->thread_information_list.at( x ).bytes_written;
             thread_info_vlist.push_back( thread_map );
         }
-        qDebug() << "Time started: " << item_map["time_started"].toString();
         item_map["threads"] = thread_info_vlist;
         root.insert( item_map[ "time_started" ].toString(), item_map );
     }

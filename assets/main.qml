@@ -2,31 +2,29 @@ import bb.cascades 1.2
 import bb.system 1.2
 import bb.data 1.0
 
-
 TabbedPane
 {
     property int number_of_threads;
     property int number_of_downloads;
     property string downloads_directory;
+    property int autocopy_clipboard;
     
     onCreationCompleted: {
         number_of_threads = settings.max_thread;
         number_of_downloads = settings.max_download;
         downloads_directory = settings.location
+        autocopy_clipboard = settings.autocopy_from_clipboard
         Application.aboutToQuit.connect( download_manager.aboutToExit )
     }
     id: root
-    function locate_icon( location ){
-        console.log( "I've been called.")
-        switch ( location ){
-            case "picture":
-                return "asset:///images/picture.png";
-            case "music":
-                return "asset:///images/music.png";
-            default :
-                return "asset:///images/other.png";
-        }
+    
+    function createDetails( info )
+    {
+        var detailsSheet = detailsViewSheet.createObject();
+        detailsSheet.data = info;
+        navPane.push( detailsSheet );
     }
+    
     showTabsOnActionBar: true
     Menu.definition: MenuDefinition {
         helpAction: HelpActionItem {
@@ -43,6 +41,10 @@ TabbedPane
         ComponentDefinition {
             id: settingsPage
             source: "asset:///settings.qml"
+        },
+        ComponentDefinition {
+            id: detailsViewSheet
+            source: "asset:///details.qml"
         }
     ]
     Tab
@@ -57,7 +59,7 @@ TabbedPane
                 number_of_threads = settings.max_thread;
                 number_of_downloads = settings.max_download;
                 downloads_directory = settings.location
-                
+                autocopy_clipboard = settings.autocopy_from_clipboard
                 page.destroy()
             }
             
@@ -77,6 +79,9 @@ TabbedPane
                     dismissAction: ActionItem {
                         imageSource: "asset:///images/5_content_new.png"
                         onTriggered: {
+                            if( autocopy_clipboard == 1 ){
+                                addNewDownload.inputField.defaultText = _clipboard.clipboardText();
+                            }
                             addNewDownload.show()
                         }
                     }
@@ -178,6 +183,9 @@ TabbedPane
                     Container {
                         topPadding: 20
                         ListView {
+                            id: list_view
+                            dataModel: model_
+                            
                             attachedObjects: [
                                 CustomListItem {
                                     id: completed_list_item
@@ -189,21 +197,57 @@ TabbedPane
                                     id: uncompleted_list_item
                                 }
                             ]
-                            id: list_view
                             
-                            dataModel: model_
+                            function stop( url_, toPause )
+                            {
+                                download_manager.stopDownload( url_, toPause );
+                            }
+                            
+                            function start( url ){
+                                download_manager.addNewUrl( addNewDownload.inputFieldTextEntry(), number_of_threads, 
+                                    number_of_downloads, downloads_directory );
+                            }
+                            
                             listItemComponents: [
                                 ListItemComponent {
                                     type: "item"
                                     CustomListItem {
+                                        id: customList
                                         contextActions: [
                                             ActionSet {
                                                 ActionItem {
-                                                    title: "View Details"
-                                                    imageSource: "asset:///images/info.png"
+                                                    title: "Start"
+                                                    imageSource: "asset:///images/play.png"
+                                                    onTriggered: {
+                                                        var view = customList.ListItem.view
+                                                        var data = view.dataModel.data( view.selected() )
+                                                        var url_ = data.original_url
+                                                        view.start( url_ );
+                                                    }
+                                                }
+                                                ActionItem {
+                                                    title: "Pause"
+                                                    imageSource: "asset:///images/pause.png"
+                                                    onTriggered: {
+                                                        var view = customList.ListItem.view
+                                                        var data = view.dataModel.data( view.selected() )
+                                                        var url_ = data.original_url
+                                                        view.stop( url_, true );
+                                                    }
+                                                }
+                                                ActionItem {
+                                                    title: "Stop"
+                                                    imageSource: "asset:///images/stop.png"
+                                                    onTriggered: {
+                                                        var view = customList.ListItem.view
+                                                        var data = view.dataModel.data( view.selected() )
+                                                        var url_ = data.original_url
+                                                        view.stop( url_, false );
+                                                    }
                                                 }
                                                 DeleteActionItem {
                                                     title: "Remove from list"
+                                                    imageSource: "asset:///images/delete.png"
                                                 }
                                                 ActionItem {
                                                     title: "Delete file";
@@ -239,7 +283,7 @@ TabbedPane
                                                 ProgressIndicator {
                                                     fromValue: 1
                                                     toValue: 100
-                                                    value: 50
+                                                    value: ListItemData.percentage
                                                 }
                                                 Label {
                                                     text: ListItemData.speed
@@ -263,15 +307,20 @@ TabbedPane
                                     }
                                 }
                             ]
+                            
                             onTriggered: {
-                                list_view.clearSelection()
-                                //                            list_view.toggleSelection( indexPath )
-                                select( indexPath )
-                            }
+                                list_view.clearSelection();
+                                list_view.toggleSelection( indexPath )
+                                if( indexPath.length == 1 ){
+                                    var data = model_.data( indexPath );
+                                    root.createDetails( data );
+                                    return
+                                }
+                            } // list_view onTriggered
                         }
                     }
                 }
             }
         }
-    }
+    } // homepageTab
 }

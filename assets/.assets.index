@@ -1,5 +1,6 @@
 1
 21
+details.qml
 images/5_content_new.png
 images/5_content_remove.png
 images/all.png
@@ -16,7 +17,6 @@ images/picture.png
 images/play.png
 images/settings.png
 images/stop.png
-images/stop_2.png
 images/video.png
 images/zip.png
 main.qml

@@ -204,19 +204,19 @@ Page {
                 layoutProperties: StackLayoutProperties {
                     spaceQuota: 20
                 }
-                text: "Pause download(s) on error"
+                text: "Automatically copy text from clipboard"
             }
             ToggleButton {
                 layoutProperties: StackLayoutProperties {
                     spaceQuota: 80
                 }
                 horizontalAlignment: HorizontalAlignment.Right
-                id: pauseOnErrorOption
+                id: autocopyClipboardOption
                 onCreationCompleted: {
-                    checked = ( settings.pause_on_error == 1 ? true : false )
+                    checked = ( settings.autocopy_from_clipboard == 1 ? true : false )
                 }
                 onCheckedChanged: {
-                    settings.pause_on_error = ( checked == true ? 1 : 0 )
+                    settings.autocopy_from_clipboard = ( checked == true ? 1 : 0 )
                 }
             }
         }

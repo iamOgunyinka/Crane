@@ -15,7 +15,23 @@
 
 struct Information
 {
-    typedef QMap<QDateTime, QSharedPointer<Information> >::iterator IteratorForDownloadMap;
+    /* NOTE on DateTime
+     * A wrapper for QDateTime to change the default behavior of operator<. QMap<K,T> doesn't accept a sort function
+     * and since it sorts K in ascending order, I need to change this behavior such that newest downloads appear first.
+     * */
+    struct DateTime {
+        DateTime( QDateTime date_time ): date_time_( date_time ){}
+        QDateTime date_time_;
+
+        bool operator<( DateTime date_time ) const {
+            return this->date_time_ > date_time.date_time_;
+        }
+        bool operator==( DateTime date_time ) const {
+            return this->date_time_ == date_time.date_time_;
+        }
+    };
+
+    typedef QMap<DateTime, QSharedPointer<Information> >::iterator IteratorForDownloadMap;
     struct ThreadInfo {
         qint64       thread_low_byte; // will be where last download stopped
         qint64       thread_high_byte; // byte destination in the range [ thread_low_byte - thread_high_byte ]
@@ -57,9 +73,9 @@ class DownloadInfo: public QObject
 public:
     DownloadInfo( QString const & filename, QObject *parent = NULL );
     virtual ~DownloadInfo();
-    static QMap<QDateTime, QSharedPointer<Information> > & DownloadInfoMap();
+    static QMap<Information::DateTime, QSharedPointer<Information> > & DownloadInfoMap();
 private:
-    static QMap<QDateTime, QSharedPointer<Information> > download_info_map;
+    static QMap<Information::DateTime, QSharedPointer<Information> > download_info_map;
 public slots:
     void readDownloadSettingsFile();
     void writeDownloadSettingsFile();

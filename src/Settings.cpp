@@ -10,7 +10,7 @@
 
 Settings::Settings( QObject *parent ): QObject( parent ),
     download_directory_len( 0 ), download_directory( NULL ), max_download( 2 ),
-    max_thread( 1 ), app_notify( 0 ), pause_on_error( 0 ), file( NULL )
+    max_thread( 1 ), app_notify( 0 ), autocopy_from_clipboard( 0 ), file( NULL )
 {
     file = fopen( "data/settings.db", "rb" );
     if( !file ){
@@ -41,7 +41,7 @@ void Settings::readSettings()
 
         fread( &app_notify, sizeof( app_notify ), 1, file );
 
-        fread( &pause_on_error, sizeof( pause_on_error ), 1, file );
+        fread( &autocopy_from_clipboard, sizeof( autocopy_from_clipboard ), 1, file );
         fclose( file );
     } else {
         emit error( "Unable to read file" );
@@ -70,7 +70,7 @@ void Settings::writeSettings()
     fwrite( &max_download, sizeof( max_download ), 1, file );
     fwrite( &max_thread, sizeof( max_thread ), 1, file );
     fwrite( &app_notify, sizeof( app_notify ), 1, file );
-    fwrite( &pause_on_error, sizeof( pause_on_error ), 1, file );
+    fwrite( &autocopy_from_clipboard, sizeof( autocopy_from_clipboard ), 1, file );
 
     fclose( file );
 }
@@ -104,14 +104,16 @@ void Settings::setAppNotification( int n )
     if( app_notify != n ){
         app_notify = n;
         emit appNotificationChanged( n );
+        writeSettings();
     }
 }
 
-void Settings::setPauseOnError( int e )
+void Settings::useClipboardText( int e )
 {
-    if( pause_on_error != e ){
-        pause_on_error = e;
-        emit pauseOnErrorChanged( e );
+    if( autocopy_from_clipboard != e ){
+        autocopy_from_clipboard = e;
+        emit clipboardUseChanged( e );
+        writeSettings();
     }
 }
 

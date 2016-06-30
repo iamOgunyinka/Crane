@@ -122,6 +122,11 @@ void CraneDownloader::addNewUrl( QString const & address, unsigned int threads_t
     addNewUrlWithManager( address, location, CraneDownloader::m_pDownloadManager.data() );
 }
 
+void CraneDownloader::stopDownload( QString const & url, bool toPause )
+{
+
+}
+
 void CraneDownloader::errorHandler( QString what, QString url )
 {
     DownloadManager::active_download_list.remove( url );

@@ -65,9 +65,9 @@ void ApplicationUI::onInvokeRequest( bb::system::InvokeRequest const & request )
 
 void ApplicationUI::initFullUI()
 {
-    CraneDataModel       *data_model = new CraneDataModel;
+    CraneDataModel         *data_model = new CraneDataModel;
     CraneFilteredDataModel *filtered_model = new CraneFilteredDataModel( data_model, this );
-
+    ApplicationClipBoard   *clipboard = new ApplicationClipBoard( this );
 //    QObject::connect( m_pDownloadManager, SIGNAL( statusChanged( QString ) ), filtered_model,
 //            SLOT( refreshView( QString ) ) );
 
@@ -76,6 +76,7 @@ void ApplicationUI::initFullUI()
     qml->setContextProperty( "model_", filtered_model );
     qml->setContextProperty( "download_manager", m_pDownloadManager );
     qml->setContextProperty( "settings", m_pSettings );
+    qml->setContextProperty( "_clipboard", clipboard );
     // Create root object for the UI
     AbstractPane *root = qml->createRootObject<AbstractPane>();
 
