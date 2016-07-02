@@ -124,7 +124,8 @@ void CraneDownloader::addNewUrl( QString const & address, unsigned int threads_t
 
 void CraneDownloader::stopDownload( QString const & url, bool toPause )
 {
-
+    Q_UNUSED( url );
+    Q_UNUSED( toPause );
 }
 
 void CraneDownloader::errorHandler( QString what, QString url )

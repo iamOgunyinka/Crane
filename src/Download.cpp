@@ -237,6 +237,7 @@ void DownloadComponent::startDownload()
             return;
         }
 
+        download_information->download_status = Information::DownloadInProgress;
         startDownloadImpl( download_information->thread_information_list.size() );
         qDebug() << "Download continued...";
         return;
@@ -352,15 +353,22 @@ void DownloadComponent::addNewUrlImpl( QString const & url, QNetworkReply *respo
     } else {
         download_information->size_of_file_in_bytes = 0;
     }
+
+    qDebug() << "Here...";
+    typedef QPair<QByteArray, QByteArray> PairByte;
+    QList<PairByte> header = response->rawHeaderPairs();
+    foreach( PairByte pb, header ) qDebug() << pb.first << ": " << pb.second;
+
     if( response->hasRawHeader( QByteArray( "Content-Disposition" ) ) ){
-        QString cd_content( response->rawHeader( "Content-Disposition" ) );
-        int i = cd_content.indexOf( "filename" );
-        if( i != -1 ){
-            cd_content = QString::fromStdString( cd_content.toStdString().substr( i ) );
-            i = cd_content.indexOf( '"' );
-            if( i != -1 ){
-                cd_content = QString::fromStdString( cd_content.toStdString().substr( i + 1 ) );
-                download_information->filename = cd_content.left( cd_content.indexOf( '"' ) );
+        QString cdp_str = response->rawHeader( "Content-Disposition" );
+        int index_of_filename = cdp_str.indexOf( "filename=" );
+        if( index_of_filename != -1 ){
+            QString filename_itself = QString::fromStdString( cdp_str.toStdString().substr( index_of_filename + 9 ) );
+            if( filename_itself.startsWith( '"' ) ){
+                QFileInfo fileInfo( filename_itself );
+                download_information->filename = fileInfo.fileName();
+            } else {
+                download_information->filename = filename_itself;
             }
         }
     }
@@ -370,6 +378,7 @@ void DownloadComponent::addNewUrlImpl( QString const & url, QNetworkReply *respo
     }
     download_information->percentage = 0;
 
+    qDebug() << "In";
     download_information->path_to_file = download_directory + "/" + download_information->filename;
     this->file = new QFile( download_information->path_to_file );
 
@@ -380,6 +389,7 @@ void DownloadComponent::addNewUrlImpl( QString const & url, QNetworkReply *respo
         return;
     }
 
+    qDebug() << "Out";
     if( !this->file->resize( download_information->size_of_file_in_bytes ) ){
         this->file->close();
         delete this->file;
@@ -387,6 +397,7 @@ void DownloadComponent::addNewUrlImpl( QString const & url, QNetworkReply *respo
         emit error( this->file->errorString(), download_information->original_url );
         return;
     }
+    qDebug() << "OutIn";
 
     download_information->time_started = QDateTime::currentDateTime();
     download_information->download_status = Information::DownloadInProgress;
