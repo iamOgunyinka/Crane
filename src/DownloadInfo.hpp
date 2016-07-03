@@ -74,6 +74,7 @@ public:
     DownloadInfo( QString const & filename, QObject *parent = NULL );
     virtual ~DownloadInfo();
     static QMap<Information::DateTime, QSharedPointer<Information> > & DownloadInfoMap();
+    static QSharedPointer<Information> UrlSearch( QString const & url );
 private:
     static QMap<Information::DateTime, QSharedPointer<Information> > download_info_map;
 public slots:

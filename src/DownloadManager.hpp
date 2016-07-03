@@ -52,6 +52,7 @@ public:
     Q_INVOKABLE static void addNewUrl( QString const & url, unsigned int threads, unsigned int download_limit,
                 QString directory = QString() );
     Q_INVOKABLE static void stopDownload( QString const & url, bool toPause );
+    Q_INVOKABLE static void removeItem( QString const & url, bool deleteFile );
     CraneDownloader();
     ~CraneDownloader();
 signals:

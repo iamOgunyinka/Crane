@@ -60,15 +60,25 @@ Page {
         }
         Divider {}
         Container {
-            layout: StackLayout {
-                orientation: LayoutOrientation.LeftToRight
-            }
             Label {
                 text: "Location on phone"
                 textStyle.base: allTextDef.style
             }
             Label {
                 text: data.path
+            }
+        }
+        Divider {}
+        Container {
+            layout: StackLayout {
+                orientation: LayoutOrientation.LeftToRight
+            }
+            Label {
+                text: "Resumable"
+                textStyle.base: allTextDef.style
+            }
+            Label {
+                text: ( data.resumable == 1 ? "true" : "false" )
             }
         }
         Divider {}

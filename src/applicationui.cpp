@@ -68,8 +68,9 @@ void ApplicationUI::initFullUI()
     CraneDataModel         *data_model = new CraneDataModel;
     CraneFilteredDataModel *filtered_model = new CraneFilteredDataModel( data_model, this );
     ApplicationClipBoard   *clipboard = new ApplicationClipBoard( this );
-//    QObject::connect( m_pDownloadManager, SIGNAL( statusChanged( QString ) ), filtered_model,
-//            SLOT( refreshView( QString ) ) );
+
+    QObject::connect( m_pDownloadManager, SIGNAL( statusChanged( QString ) ), filtered_model, SLOT( refreshView() ) );
+    QObject::connect( m_pDownloadManager, SIGNAL( status( QString ) ), filtered_model, SLOT( refreshView() ) );
 
     QmlDocument *qml = QmlDocument::create( "asset:///main.qml" ).parent(this);
 

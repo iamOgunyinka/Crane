@@ -185,76 +185,91 @@ TabbedPane
                         ListView {
                             id: list_view
                             dataModel: model_
+                            property variant selected_download_indexpath;
                             
-                            attachedObjects: [
-                                CustomListItem {
-                                    id: completed_list_item
-                                    Container {
-                                    
+                            onSelectionChanged: {
+                                if( selected ){
+                                    selected_download_indexpath = indexPath
+                                }
+                            }
+                            contextActions: [
+                                ActionSet {
+                                    ActionItem {
+                                        title: "Start"
+                                        imageSource: "asset:///images/play.png"
+                                        onTriggered: {
+                                            var data = list_view.dataModel.data( list_view.selected_download_indexpath )
+                                            var url_ = data.original_url
+                                            list_view.start( url_ );
+                                        }
                                     }
-                                },
-                                StandardListItem {
-                                    id: uncompleted_list_item
+                                    ActionItem {
+                                        title: "Pause"
+                                        imageSource: "asset:///images/pause.png"
+                                        onTriggered: {
+                                            var data = list_view.dataModel.data( list_view.selected_download_indexpath )
+                                            var url_ = data.original_url
+                                            list_view.stop( url_, true );
+                                        }
+                                    }
+                                    ActionItem {
+                                        title: "Stop"
+                                        imageSource: "asset:///images/stop.png"
+                                        onTriggered: {
+                                            var data = list_view.dataModel.data( list_view.selected_download_indexpath )
+                                            var url_ = data.original_url
+                                            list_view.stop( url_, false );
+                                        }
+                                    }
+                                    DeleteActionItem {
+                                        title: "Remove from list"
+                                        imageSource: "asset:///images/delete.png"
+                                        onTriggered: {
+                                            var data = list_view.dataModel.data( list_view.selected_download_indexpath )
+                                            list_view.remove_item( data.original_url, false )
+                                            list_view.dataModel.removeItem( list_view.selected_download_indexpath );
+                                        }
+                                    }
+                                    ActionItem {
+                                        title: "Delete file";
+                                        imageSource: "asset:///images/delete.png"
+                                        onTriggered: {
+                                            var data = list_view.dataModel.data( list_view.selected_download_indexpath )
+                                            list_view.remove_item( data.original_url, true )
+                                            list_view.dataModel.removeItem( list_view.selected_download_indexpath )
+                                        }
+                                    }
                                 }
                             ]
+                            onTriggered: {
+                                if( indexPath.length == 1 ){
+                                    var data = model_.data( indexPath );
+                                    root.createDetails( data );
+                                }
+                            }
                             
                             function stop( url_, toPause )
                             {
                                 download_manager.stopDownload( url_, toPause );
                             }
                             
-                            function start( url ){
-                                download_manager.addNewUrl( addNewDownload.inputFieldTextEntry(), number_of_threads, 
-                                    number_of_downloads, downloads_directory );
+                            function start( url_ ){
+                                download_manager.addNewUrl( url_, number_of_threads, number_of_downloads, downloads_directory );
+                            }
+                            
+                            function remove_item( url_, removeFile )
+                            {
+                                download_manager.removeItem( url_, removeFile );
                             }
                             
                             listItemComponents: [
                                 ListItemComponent {
                                     type: "item"
+                                    id: list_item
                                     CustomListItem {
                                         id: customList
-                                        contextActions: [
-                                            ActionSet {
-                                                ActionItem {
-                                                    title: "Start"
-                                                    imageSource: "asset:///images/play.png"
-                                                    onTriggered: {
-                                                        var view = customList.ListItem.view
-                                                        var data = view.dataModel.data( view.selected() )
-                                                        var url_ = data.original_url
-                                                        view.start( url_ );
-                                                    }
-                                                }
-                                                ActionItem {
-                                                    title: "Pause"
-                                                    imageSource: "asset:///images/pause.png"
-                                                    onTriggered: {
-                                                        var view = customList.ListItem.view
-                                                        var data = view.dataModel.data( view.selected() )
-                                                        var url_ = data.original_url
-                                                        view.stop( url_, true );
-                                                    }
-                                                }
-                                                ActionItem {
-                                                    title: "Stop"
-                                                    imageSource: "asset:///images/stop.png"
-                                                    onTriggered: {
-                                                        var view = customList.ListItem.view
-                                                        var data = view.dataModel.data( view.selected() )
-                                                        var url_ = data.original_url
-                                                        view.stop( url_, false );
-                                                    }
-                                                }
-                                                DeleteActionItem {
-                                                    title: "Remove from list"
-                                                    imageSource: "asset:///images/delete.png"
-                                                }
-                                                ActionItem {
-                                                    title: "Delete file";
-                                                    imageSource: "asset:///images/delete.png"
-                                                }
-                                            }
-                                        ]
+                                        property variant selected_download
+                                        
                                         Container {
                                             layout: StackLayout {
                                                 orientation: LayoutOrientation.LeftToRight
@@ -307,20 +322,10 @@ TabbedPane
                                     }
                                 }
                             ]
-                            
-                            onTriggered: {
-                                list_view.clearSelection();
-                                list_view.toggleSelection( indexPath )
-                                if( indexPath.length == 1 ){
-                                    var data = model_.data( indexPath );
-                                    root.createDetails( data );
-                                    return
-                                }
-                            } // list_view onTriggered
                         }
                     }
                 }
             }
         }
-    } // homepageTab
-}
+    }
+} // homepageTab

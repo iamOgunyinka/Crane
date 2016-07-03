@@ -103,7 +103,5 @@ private:
     void startDownloadImpl( int threads_to_use );
     void addNewUrlImpl( QString const & url, QNetworkReply *response );
     QUrl redirectUrl( QUrl const & possibleRedirectUrl, QUrl const & oldRedirectUrl) const;
-    Information* find( QString const & url );
-    QSharedPointer<Information> urlSearch( QString const & url );
 };
 #endif /* DOWNLOAD_HPP_ */

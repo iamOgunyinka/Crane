@@ -29,6 +29,16 @@ QMap<Information::DateTime, QSharedPointer<Information> > & DownloadInfo::Downlo
     return DownloadInfo::download_info_map;
 }
 
+QSharedPointer<Information> DownloadInfo::UrlSearch( QString const & url )
+{
+    Information::IteratorForDownloadMap iter = DownloadInfo::DownloadInfoMap().begin();
+    for( ; iter != DownloadInfo::DownloadInfoMap().end(); ++iter )
+    {
+        if( iter.value()->original_url == url ) return iter.value();
+    }
+    return QSharedPointer<Information>( NULL );
+}
+
 void DownloadInfo::readDownloadSettingsFile()
 {
     QFile file( filename_ );

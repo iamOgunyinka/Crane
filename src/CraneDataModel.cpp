@@ -150,7 +150,43 @@ void CraneFilteredDataModel::changeView( int view )
     Q_UNUSED( view );
 }
 
-void CraneFilteredDataModel::refreshView( QString url )
+
+void CraneFilteredDataModel::removeItem( QVariantList const & indexPath )
 {
-    qDebug() << "Called to refresh view with: " << url;
+    if( indexPath.size() == 1 ){
+        DownloadInfo::DownloadInfoMap().remove( DownloadInfo::DownloadInfoMap().keys()[ indexPath[0].toInt() ]);
+    }
+    emit itemRemoved( indexPath );
+}
+
+void CraneFilteredDataModel::refreshView()
+{
+    int size_of_map = DownloadInfo::DownloadInfoMap().size();
+    emit itemsChanged( bb::cascades::DataModelChangeType::AddRemove, QSharedPointer<bb::cascades::DataModel::IndexMapper>(
+            new MyIndexMapper( size_of_map, size_of_map, false ))
+            );
+}
+
+MyIndexMapper::MyIndexMapper( int index, int count, bool deleted ):
+        m_index( index ), m_count( count ), m_deleted( deleted )
+{
+
+}
+
+bool MyIndexMapper::newIndexPath( QVariantList *pNewIndexPath, int *replacementIndex, QVariantList const & oldIndexPath ) const
+{
+    if ( oldIndexPath[0].toInt() < m_index ) {
+        pNewIndexPath->append( oldIndexPath );
+        return true;
+    } else if ( m_deleted && oldIndexPath[0].toInt() <= m_index + m_count ) {
+        *replacementIndex = m_index;
+        return false;
+    } else {
+        if ( m_deleted ){
+            pNewIndexPath->append( oldIndexPath[0].toInt() - m_count );
+        } else {
+            pNewIndexPath->append( oldIndexPath[0].toInt() + m_count );
+        }
+        return true;
+    }
 }

@@ -158,16 +158,6 @@ DownloadComponent::~DownloadComponent()
     emit closed();
 }
 
-QSharedPointer<Information> DownloadComponent::urlSearch( QString const & url )
-{
-    Information::IteratorForDownloadMap iter = DownloadInfo::DownloadInfoMap().begin();
-    for( ; iter != DownloadInfo::DownloadInfoMap().end(); ++iter )
-    {
-        if( iter.value()->original_url == url ) return iter.value();
-    }
-    return QSharedPointer<Information>( NULL );
-}
-
 void DownloadComponent::updateThread( unsigned int thread_number, qint64 bytes_written )
 {
     download_information->thread_information_list[thread_number-1].bytes_written = bytes_written;
@@ -176,7 +166,7 @@ void DownloadComponent::updateThread( unsigned int thread_number, qint64 bytes_w
 void DownloadComponent::startDownload()
 {
     timer.start();
-    QSharedPointer<Information> local_download_information = this->urlSearch( download_information->original_url );
+    QSharedPointer<Information> local_download_information = DownloadInfo::UrlSearch( download_information->original_url );
 
     if( local_download_information ){
         download_information = local_download_information;
@@ -270,6 +260,7 @@ void DownloadComponent::stopDownload()
         download_threads[i]->terminate();
     }
     download_threads.clear();
+    download_information->download_status = Information::DownloadStopped;
     if( file ){
         file->close();
         delete file;
@@ -296,9 +287,9 @@ void DownloadComponent::headFinishedHandler()
             download_information->redirected_url = redirected_to.toString();
             startDownload();
         }
-    } else {
-        emit error( response->errorString(), download_information->original_url );
+        return;
     }
+    emit error( response->errorString(), download_information->original_url );
 }
 
 void DownloadComponent::errorHandler( QNetworkReply::NetworkError what )
@@ -341,23 +332,20 @@ void DownloadComponent::errorHandler( QString message )
 void DownloadComponent::addNewUrlImpl( QString const & url, QNetworkReply *response )
 {
     download_information->redirected_url = url;
+    download_information->accept_ranges = 0;
+    download_information->size_of_file_in_bytes = 0;
+    download_information->percentage = 0;
+    download_information->time_started = QDateTime::currentDateTime();
+    download_information->download_status = Information::DownloadInProgress;
+
     // accepts pause/resume and slicing of files for different threads to process
     if( response->hasRawHeader( QByteArray( "Accept-Ranges" ) ) ){
         download_information->accept_ranges = 1;
-    } else {
-        download_information->accept_ranges = 0;
     }
     //size of the file to download
     if( response->hasRawHeader( QByteArray( "Content-Length" ) ) ){
         download_information->size_of_file_in_bytes = response->rawHeader( "Content-Length" ).toInt();
-    } else {
-        download_information->size_of_file_in_bytes = 0;
     }
-
-    qDebug() << "Here...";
-    typedef QPair<QByteArray, QByteArray> PairByte;
-    QList<PairByte> header = response->rawHeaderPairs();
-    foreach( PairByte pb, header ) qDebug() << pb.first << ": " << pb.second;
 
     if( response->hasRawHeader( QByteArray( "Content-Disposition" ) ) ){
         QString cdp_str = response->rawHeader( "Content-Disposition" );
@@ -376,9 +364,7 @@ void DownloadComponent::addNewUrlImpl( QString const & url, QNetworkReply *respo
     if( download_information->filename.isEmpty() ){
         download_information->filename = DownloadComponent::GetFilename( download_information->redirected_url, download_directory );
     }
-    download_information->percentage = 0;
 
-    qDebug() << "In";
     download_information->path_to_file = download_directory + "/" + download_information->filename;
     this->file = new QFile( download_information->path_to_file );
 
@@ -389,7 +375,6 @@ void DownloadComponent::addNewUrlImpl( QString const & url, QNetworkReply *respo
         return;
     }
 
-    qDebug() << "Out";
     if( !this->file->resize( download_information->size_of_file_in_bytes ) ){
         this->file->close();
         delete this->file;
@@ -397,10 +382,6 @@ void DownloadComponent::addNewUrlImpl( QString const & url, QNetworkReply *respo
         emit error( this->file->errorString(), download_information->original_url );
         return;
     }
-    qDebug() << "OutIn";
-
-    download_information->time_started = QDateTime::currentDateTime();
-    download_information->download_status = Information::DownloadInProgress;
 
     // if the size of file is unknown, let's use a single thread
     int threads_to_use = 1;
@@ -420,6 +401,7 @@ void DownloadComponent::startDownloadImpl( int threads_to_use )
     qint64 byte_begin = 0, byte_end = 0;
     bool thread_list_empty = download_information->thread_information_list.isEmpty();
 
+    emit downloadStarted( download_information->original_url );
     for( int i = 1; i <= threads_to_use; ++i )
     {
         QThread *new_thread = new QThread( this );
@@ -475,7 +457,6 @@ void DownloadComponent::startDownloadImpl( int threads_to_use )
         new_thread->start();
         this->download_threads.push_back( new_thread );
     }
-    emit downloadStarted( download_information->original_url );
 }
 
 void DownloadComponent::statusHandler( int percent, double speed, QString unit )
