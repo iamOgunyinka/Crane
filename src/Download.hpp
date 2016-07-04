@@ -39,15 +39,16 @@ private:
 public slots:
     void finishedHandler();
     void readyReadHandler();
+    void errorHandler( QNetworkReply::NetworkError );
     void downloadProgressHandler( qint64, qint64 );
     void startDownload();
     void stopDownload();
 signals:
-    void finished();
-    void stopped( unsigned int );
+    void completed();
+    void stopped();
     void error( QString );
-    void status( unsigned int, qint64 );
-    void status( int, double, QString );
+    void bytesWrittenStatus( unsigned int, qint64 );
+    void progressStatus( int, double, QString );
 public:
     DownloadItem( QUrl url, qint64 low, qint64 high, qint64 bytes_written, QObject *parent = NULL );
     ~DownloadItem();
@@ -70,7 +71,7 @@ class DownloadComponent: public QObject
 
 public:
     QFile                       *file;
-    QList<QThread*>             download_threads;
+    QList<DownloadItem*>        download_item_list;
     unsigned int                byte_range_specified;
     QSharedPointer<Information> download_information;
 
@@ -80,18 +81,18 @@ public:
 public slots:
     void errorHandler( QString );
     void errorHandler( QNetworkReply::NetworkError );
-    void finishedHandler();
+    void completionHandler();
     void headFinishedHandler();
-    void updateThread( unsigned int, qint64 );
-    void statusHandler( int, double, QString );
+    void updateBytesWritten( unsigned int, qint64 );
+    void progressStatusHandler( int, double, QString );
     void startDownload();
     void cleanUpOnExit();
     void stopDownload();
 signals:
     void error( QString message, QString url );
-    void finished( QString );
+    void completed( QString );
     void downloadStarted( QString );
-    void statusChanged( QString );
+    void progressChanged( QString, QDateTime );
     void stopped();
     void closed();
 public:

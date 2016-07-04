@@ -23,15 +23,17 @@ struct DownloadManager: public QObject
     Q_OBJECT
 
 public slots:
-    void finishedHandler( QString );
+    void completionHandler( QString );
     void errorHandler( QString, QString );
     void downloadStartedHandler( QString url );
-    void statusChangedHandler( QString url );
+    void progressHandler( QString, QDateTime );
 signals:
     void error( QString, QString );
-    void finished( QString );
+    void completed( QString );
     void status( QString );
-    void statusChanged( QString );
+    void progressed( QString, QDateTime );
+    void downloadStarted( QString );
+    void downloadStopped( QString );
 public:
     static QMap<QString, DownloadComponent*>   active_download_list;
     static QList<QString>                      inactive_downloads;
@@ -58,11 +60,11 @@ public:
 signals:
     void error( QString );
     void status( QString );
-    void statusChanged( QString );
+    void progressed( QString, QDateTime );
 public slots:
     void errorHandler( QString, QString );
     void statusHandler( QString );
-    void statusChangedHandler( QString );
+    void progressHandler( QString, QDateTime );
     Q_INVOKABLE void aboutToExit();
 };
 #endif /* DOWNLOADMANAGER_HPP_ */

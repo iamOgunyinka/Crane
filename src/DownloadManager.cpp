@@ -29,16 +29,14 @@ DownloadManager::~DownloadManager()
 
 void DownloadManager::errorHandler( QString message, QString url )
 {
-    qDebug() << "Error: " << message;
     emit error( message, url );
 }
 
-void DownloadManager::finishedHandler( QString url )
+void DownloadManager::completionHandler( QString url )
 {
     DownloadManager::active_download_list.remove( url ); // belongs to a deleted thread
 
-    emit status( url + " downloaded successfully" );
-    qDebug() << url << " downloaded successfully";
+    emit completed( url + " downloaded successfully" );
     if( DownloadManager::inactive_downloads.size() > 0 ){
         QString next_download = inactive_downloads.front();
         DownloadManager::inactive_downloads.pop_front();
@@ -48,12 +46,12 @@ void DownloadManager::finishedHandler( QString url )
 
 void DownloadManager::downloadStartedHandler( QString url )
 {
-    emit status( "Download started on " + url );
+    emit downloadStarted( url );
 }
 
-void DownloadManager::statusChangedHandler( QString url )
+void DownloadManager::progressHandler( QString url, QDateTime date_time )
 {
-    emit statusChanged( url );
+    emit progressed( url, date_time );
 }
 
 QSharedPointer<DownloadManager> CraneDownloader::m_pDownloadManager ( new DownloadManager );
@@ -68,12 +66,12 @@ CraneDownloader::CraneDownloader(): QObject( NULL )
 
     QObject::connect( CraneDownloader::m_pDownloadManager.data(), SIGNAL( error( QString, QString ) ),
             this, SLOT( errorHandler( QString, QString ) ) );
-    QObject::connect( CraneDownloader::m_pDownloadManager.data(), SIGNAL( status( QString ) ),
+    QObject::connect( CraneDownloader::m_pDownloadManager.data(), SIGNAL( downloadStarted(QString) ),
             this, SLOT( statusHandler( QString ) ) );
-    QObject::connect( CraneDownloader::m_pDownloadManager.data(), SIGNAL( finished( QString ) ),
+    QObject::connect( CraneDownloader::m_pDownloadManager.data(), SIGNAL( completed( QString ) ),
             this, SLOT( statusHandler( QString ) ) );
-    QObject::connect( CraneDownloader::m_pDownloadManager.data(), SIGNAL( statusChanged( QString ) ),
-            this, SLOT( statusChangedHandler( QString ) ) );
+    QObject::connect( CraneDownloader::m_pDownloadManager.data(), SIGNAL( progressed( QString, QDateTime ) ),
+            this, SLOT( progressHandler( QString, QDateTime ) ) );
 }
 
 CraneDownloader::~CraneDownloader(){ }
@@ -89,14 +87,14 @@ void CraneDownloader::addNewUrlWithManager( QString const & address, QString loc
 	DownloadManager::active_download_list.insert( new_uri_address, new_download );
 
 	QObject::connect( new_download_thread, SIGNAL( started() ), new_download, SLOT( startDownload() ) );
-    QObject::connect( new_download, SIGNAL( statusChanged( QString ) ), CraneDownloader::m_pDownloadManager.data(),
-            SLOT( statusChangedHandler( QString ) ) );
+    QObject::connect( new_download, SIGNAL( progressChanged( QString, QDateTime ) ), CraneDownloader::m_pDownloadManager.data(),
+            SLOT( progressHandler( QString, QDateTime ) ) );
 	QObject::connect( new_download, SIGNAL( error( QString, QString )), dm, SLOT( errorHandler( QString, QString )) );
 	QObject::connect( new_download, SIGNAL( downloadStarted( QString )), dm,
 	        SLOT( downloadStartedHandler( QString )) );
-	QObject::connect( new_download, SIGNAL( finished( QString ) ), dm, SLOT( finishedHandler( QString ) ) );
+	QObject::connect( new_download, SIGNAL( completed( QString ) ), dm, SLOT( completionHandler( QString ) ) );
 	QObject::connect( new_download, SIGNAL( stopped() ), new_download_thread, SLOT( quit() ) );
-	QObject::connect( new_download, SIGNAL( finished( QString ) ), new_download_thread, SLOT( quit() ) );
+	QObject::connect( new_download, SIGNAL( completed( QString ) ), new_download_thread, SLOT( quit() ) );
 	QObject::connect( new_download_thread, SIGNAL( finished() ), new_download_thread, SLOT( deleteLater() ) );
 
 	new_download_thread->start();
@@ -108,16 +106,22 @@ void CraneDownloader::addNewUrl( QString const & address, unsigned int threads_t
     DownloadManager::max_number_of_downloads = download_limit;
     DownloadManager::max_number_of_threads = threads_to_use;
 
-	if( DownloadManager::active_download_list.size() >= DownloadManager::max_number_of_downloads ){
-        DownloadManager::inactive_downloads.push_back( address );
-        qDebug() << "New download queued up";
-        return;
+    if( DownloadManager::max_number_of_downloads != 0 ){
+        if( DownloadManager::active_download_list.size() >= DownloadManager::max_number_of_downloads ){
+            DownloadManager::inactive_downloads.push_back( address );
+            qDebug() << "New download queued up";
+            return;
+        }
+        if( DownloadManager::inactive_downloads.contains( address ) ){
+            qDebug() << "Don't worry, we've queued the download for you already.";
+            return;
+        }
     }
 
-	if( DownloadManager::inactive_downloads.contains( address ) ){
-	    qDebug() << "Don't worry, we've queued the download for you already.";
-	    return;
-	}
+    if( DownloadManager::active_download_list.contains( address ) ){
+        qDebug() << "Download in progress";
+        return;
+    }
 
     addNewUrlWithManager( address, location, CraneDownloader::m_pDownloadManager.data() );
 }
@@ -127,6 +131,8 @@ void CraneDownloader::stopDownload( QString const & url, bool toPause )
     if( DownloadManager::active_download_list.contains( url ) ){
         DownloadComponent *download = DownloadManager::active_download_list.value( url );
         download->stopDownload();
+
+        qDebug() << "Download stopped.";
 
         if( !toPause ) return;
         QSharedPointer<Information> p_info = DownloadInfo::UrlSearch( url );
@@ -165,9 +171,9 @@ void CraneDownloader::statusHandler( QString message )
     emit status( message );
 }
 
-void CraneDownloader::statusChangedHandler( QString url )
+void CraneDownloader::progressHandler( QString url, QDateTime date_time )
 {
-    emit statusChanged( url );
+    emit progressed( url, date_time );
 }
 
 void CraneDownloader::aboutToExit()

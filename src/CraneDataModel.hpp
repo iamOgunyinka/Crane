@@ -48,6 +48,7 @@ public:
     virtual ~CraneFilteredDataModel();
 public slots:
     void refreshView();
+    void progressHandler( QString, QDateTime );
 private:
     bb::cascades::DataModel *m_pDataModel;
 };

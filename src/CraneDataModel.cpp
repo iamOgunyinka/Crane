@@ -150,7 +150,6 @@ void CraneFilteredDataModel::changeView( int view )
     Q_UNUSED( view );
 }
 
-
 void CraneFilteredDataModel::removeItem( QVariantList const & indexPath )
 {
     if( indexPath.size() == 1 ){
@@ -165,6 +164,16 @@ void CraneFilteredDataModel::refreshView()
     emit itemsChanged( bb::cascades::DataModelChangeType::AddRemove, QSharedPointer<bb::cascades::DataModel::IndexMapper>(
             new MyIndexMapper( size_of_map, size_of_map, false ))
             );
+}
+
+void CraneFilteredDataModel::progressHandler( QString url, QDateTime date_time )
+{
+    QVariantList indexPath;
+    int index_of_download = DownloadInfo::DownloadInfoMap().keys().indexOf( date_time );
+    indexPath.append( index_of_download );
+
+    Q_UNUSED( url );
+    emit itemUpdated( indexPath );
 }
 
 MyIndexMapper::MyIndexMapper( int index, int count, bool deleted ):

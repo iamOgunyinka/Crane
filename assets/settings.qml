@@ -84,6 +84,10 @@ Page {
                 id: downloadDropDown
                 options: [
                     Option {
+                        text: "No limit"
+                        value: 0
+                    },
+                    Option {
                         text: "1 file"
                         value: 1
                     },
@@ -103,14 +107,17 @@ Page {
                 }
                 onCreationCompleted: {
                     switch ( settings.max_download ){
-                        case 1:
+                        case 0:
                             setSelectedIndex(0);
                             break;
-                        case 2:
+                        case 1:
                             setSelectedIndex(1);
                             break;
-                        case 3:
+                        case 2:
                             setSelectedIndex(2);
+                            break;
+                        case 3:
+                            setSelectedIndex(3);
                             break;
                         default:
                             setSelectedIndex(3);

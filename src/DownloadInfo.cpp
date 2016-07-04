@@ -97,7 +97,6 @@ void DownloadInfo::readDownloadSettingsFile()
         info->time_stopped = QDateTime::fromString( key_value["time_completed"].toString(), date_format );
         DownloadInfo::download_info_map.insert( info->time_started, info );
     }
-    emit finished();
 }
 
 void DownloadInfo::writeDownloadSettingsFile()

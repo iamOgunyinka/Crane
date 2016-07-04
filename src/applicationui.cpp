@@ -59,7 +59,6 @@ void ApplicationUI::onInvokeRequest( bb::system::InvokeRequest const & request )
     Q_UNUSED( action );
     Q_UNUSED( mimeType );
 
-    qDebug() << "OnInvoked Called with " << uri;
     initFullUI();
 }
 
@@ -69,7 +68,8 @@ void ApplicationUI::initFullUI()
     CraneFilteredDataModel *filtered_model = new CraneFilteredDataModel( data_model, this );
     ApplicationClipBoard   *clipboard = new ApplicationClipBoard( this );
 
-    QObject::connect( m_pDownloadManager, SIGNAL( statusChanged( QString ) ), filtered_model, SLOT( refreshView() ) );
+    QObject::connect( m_pDownloadManager, SIGNAL( progressed( QString, QDateTime ) ), filtered_model,
+            SLOT( progressHandler( QString, QDateTime ) ) );
     QObject::connect( m_pDownloadManager, SIGNAL( status( QString ) ), filtered_model, SLOT( refreshView() ) );
 
     QmlDocument *qml = QmlDocument::create( "asset:///main.qml" ).parent(this);
