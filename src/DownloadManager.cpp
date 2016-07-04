@@ -132,8 +132,6 @@ void CraneDownloader::stopDownload( QString const & url, bool toPause )
         DownloadComponent *download = DownloadManager::active_download_list.value( url );
         download->stopDownload();
 
-        qDebug() << "Download stopped.";
-
         if( !toPause ) return;
         QSharedPointer<Information> p_info = DownloadInfo::UrlSearch( url );
         if( p_info ){
