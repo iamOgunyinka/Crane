@@ -23,13 +23,13 @@ struct DownloadManager: public QObject
     Q_OBJECT
 
 public slots:
-    void completionHandler( QString );
+    void completionHandler( QString, QDateTime );
     void errorHandler( QString, QString );
     void downloadStartedHandler( QString url );
     void progressHandler( QString, QDateTime );
 signals:
     void error( QString, QString );
-    void completed( QString );
+    void completed( QString, QDateTime );
     void status( QString );
     void progressed( QString, QDateTime );
     void downloadStarted( QString );
@@ -63,7 +63,8 @@ signals:
     void progressed( QString, QDateTime );
 public slots:
     void errorHandler( QString, QString );
-    void statusHandler( QString );
+    void onDownloadCompleted( QString, QDateTime );
+    void onDownloadStarted( QString );
     void progressHandler( QString, QDateTime );
     Q_INVOKABLE void aboutToExit();
 };

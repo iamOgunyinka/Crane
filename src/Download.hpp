@@ -48,7 +48,7 @@ signals:
     void stopped();
     void error( QString );
     void bytesWrittenStatus( unsigned int, qint64 );
-    void progressStatus( int, double, QString );
+    void progressStatus( unsigned int, int, double, QString );
 public:
     DownloadItem( QUrl url, qint64 low, qint64 high, qint64 bytes_written, QObject *parent = NULL );
     ~DownloadItem();
@@ -84,13 +84,13 @@ public slots:
     void completionHandler();
     void headFinishedHandler();
     void updateBytesWritten( unsigned int, qint64 );
-    void progressStatusHandler( int, double, QString );
+    void progressStatusHandler( unsigned int, int, double, QString );
     void startDownload();
     void cleanUpOnExit();
     void stopDownload();
 signals:
     void error( QString message, QString url );
-    void completed( QString );
+    void completed( QString, QDateTime );
     void downloadStarted( QString );
     void progressChanged( QString, QDateTime );
     void stopped();

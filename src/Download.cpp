@@ -3,7 +3,7 @@
  *
  *  Created on: Jun 14, 2016
  *      Author: Joshua
- */
+*/
 
 #include <src/Download.hpp>
 #include <bb/cascades/QMLDocument>
@@ -94,11 +94,11 @@ void DownloadItem::stopDownload()
     flush();
 
     QObject::disconnect( reply_, SIGNAL( readyRead() ), this, SLOT( readyReadHandler() ) );
-    QObject::disconnect( reply_, SIGNAL( finished() ), this, SLOT( finishedHandler()) );
-    QObject::disconnect( reply_, SIGNAL( downloadProgress(qint64,qint64)), this,
+    QObject::disconnect( reply_, SIGNAL( finished() ), this, SLOT( finishedHandler() ) );
+    QObject::disconnect( reply_, SIGNAL( downloadProgress( qint64, qint64 )), this,
             SLOT( downloadProgressHandler( qint64, qint64 ) ) );
-    QObject::disconnect( reply_, SIGNAL(error(QNetworkReply::NetworkError)), this,
-            SLOT( errorHandler( QNetworkReply::NetworkError)) );
+    QObject::disconnect( reply_, SIGNAL(error(QNetworkReply::NetworkError )), this,
+            SLOT( errorHandler( QNetworkReply::NetworkError )) );
     reply_->deleteLater();
     emit stopped();
 }
@@ -143,7 +143,7 @@ void DownloadItem::downloadProgressHandler( qint64 bytes_received, qint64 bytes_
             unit = "MB/s";
         }
         int percent = actual_received * 100 / actual_total;
-        emit progressStatus( percent, speed, unit );
+        emit progressStatus( thread_number_, percent, speed, unit );
     }
 }
 
@@ -173,7 +173,7 @@ DownloadComponent::~DownloadComponent()
 
 void DownloadComponent::updateBytesWritten( unsigned int thread_number, qint64 bytes_written )
 {
-    download_information->thread_information_list[thread_number-1].bytes_written = bytes_written;
+    download_information->thread_information_list[ thread_number - 1 ].bytes_written = bytes_written;
 }
 
 void DownloadComponent::startDownload()
@@ -191,10 +191,13 @@ void DownloadComponent::startDownload()
 
             // if the file was completed then and still exists, don't do anything.
             if( file.exists() ){
-                emit completed( download_information->original_url );
+                emit error( QString( "File already exist." ), download_information->original_url );
                 return;
             }
             DownloadInfo::DownloadInfoMap().remove( download_information->time_started );
+            download_information->thread_information_list.clear();
+            Q_ASSERT( download_information->thread_information_list.size() == 0 );
+
             startDownload();
             return;
         } else {
@@ -321,7 +324,7 @@ void DownloadComponent::completionHandler()
 {
     for( int i = 0; i != download_information->thread_information_list.size(); ++i ){
         Information::ThreadInfo local_thread_info = download_information->thread_information_list.at( i );
-        if( local_thread_info.thread_high_byte != local_thread_info.bytes_written ) return;
+        if( local_thread_info.bytes_written < local_thread_info.thread_high_byte ) return;
     }
 
     download_information->download_status = Information::DownloadCompleted;
@@ -331,7 +334,7 @@ void DownloadComponent::completionHandler()
     file->close();
     delete file;
     file = NULL;
-    emit completed( download_information->original_url );
+    emit completed( download_information->original_url, download_information->time_started );
 }
 
 void DownloadComponent::errorHandler( QString message )
@@ -347,6 +350,8 @@ void DownloadComponent::addNewUrlImpl( QString const & url, QNetworkReply *respo
     download_information->percentage = 0;
     download_information->time_started = QDateTime::currentDateTime();
     download_information->download_status = Information::DownloadInProgress;
+    download_information->filename = "";
+    download_information->path_to_file = "";
 
     // accepts pause/resume and slicing of files for different threads to process
     if( response->hasRawHeader( QByteArray( "Accept-Ranges" ) ) ){
@@ -365,6 +370,9 @@ void DownloadComponent::addNewUrlImpl( QString const & url, QNetworkReply *respo
             if( filename_itself.startsWith( '"' ) ){
                 QFileInfo fileInfo( filename_itself );
                 download_information->filename = fileInfo.fileName();
+                while( download_information->filename.endsWith( '"') ){
+                    download_information->filename.chop(1);
+                }
             } else {
                 download_information->filename = filename_itself;
             }
@@ -440,7 +448,7 @@ void DownloadComponent::startDownloadImpl( int threads_to_use )
                 download->useLock( false );
             } else {
                 download->acceptRange( true );
-                download->useLock();
+                download->useLock( true );
             }
         } else {
             Information::ThreadInfo thread_info = download_information->thread_information_list[i-1];
@@ -456,8 +464,8 @@ void DownloadComponent::startDownloadImpl( int threads_to_use )
         QObject::connect( download, SIGNAL( bytesWrittenStatus( unsigned int, qint64 )), this,
                 SLOT( updateBytesWritten( unsigned int, qint64 )) );
 
-        QObject::connect( download, SIGNAL( progressStatus( int, double, QString )), this,
-                SLOT( progressStatusHandler( int, double, QString ) ) );
+        QObject::connect( download, SIGNAL( progressStatus( unsigned int, int, double, QString )), this,
+                SLOT( progressStatusHandler( unsigned int, int, double, QString ) ) );
         QObject::connect( download, SIGNAL( error( QString )), this, SLOT( errorHandler( QString ) ) );
         QObject::connect( download, SIGNAL( error( QString )), new_thread, SLOT( quit() ) );
         QObject::connect( download, SIGNAL( completed() ), this, SLOT( completionHandler() ) );
@@ -470,13 +478,14 @@ void DownloadComponent::startDownloadImpl( int threads_to_use )
     }
 }
 
-void DownloadComponent::progressStatusHandler( int percent, double speed, QString unit )
+void DownloadComponent::progressStatusHandler( unsigned int thread, int percent, double speed, QString unit )
 {
-    int number_of_threads = download_information->thread_information_list.size(), x= 0;
+    download_information->thread_information_list[thread-1].percentage = percent;
+    int number_of_threads = download_information->thread_information_list.size(), x = 0;
     for( int i = 0; i != number_of_threads; ++i ){
-        x += ( download_information->thread_information_list[i].percentage = percent );
+        x += download_information->thread_information_list[i].percentage;
     }
-    download_information->percentage = x;
+    download_information->percentage = ( x / number_of_threads );
     download_information->speed = QString::number( speed ) + unit;
     emit progressChanged( download_information->original_url, download_information->time_started );
 }

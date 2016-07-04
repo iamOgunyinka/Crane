@@ -32,16 +32,16 @@ void DownloadManager::errorHandler( QString message, QString url )
     emit error( message, url );
 }
 
-void DownloadManager::completionHandler( QString url )
+void DownloadManager::completionHandler( QString url, QDateTime date_time )
 {
     DownloadManager::active_download_list.remove( url ); // belongs to a deleted thread
 
-    emit completed( url + " downloaded successfully" );
     if( DownloadManager::inactive_downloads.size() > 0 ){
         QString next_download = inactive_downloads.front();
         DownloadManager::inactive_downloads.pop_front();
         CraneDownloader::addNewUrl( next_download, DownloadManager::max_number_of_threads, DownloadManager::max_number_of_downloads );
     }
+    emit completed( url, date_time );
 }
 
 void DownloadManager::downloadStartedHandler( QString url )
@@ -67,9 +67,9 @@ CraneDownloader::CraneDownloader(): QObject( NULL )
     QObject::connect( CraneDownloader::m_pDownloadManager.data(), SIGNAL( error( QString, QString ) ),
             this, SLOT( errorHandler( QString, QString ) ) );
     QObject::connect( CraneDownloader::m_pDownloadManager.data(), SIGNAL( downloadStarted(QString) ),
-            this, SLOT( statusHandler( QString ) ) );
-    QObject::connect( CraneDownloader::m_pDownloadManager.data(), SIGNAL( completed( QString ) ),
-            this, SLOT( statusHandler( QString ) ) );
+            this, SLOT( onDownloadStarted( QString ) ) );
+    QObject::connect( CraneDownloader::m_pDownloadManager.data(), SIGNAL( completed( QString, QDateTime ) ),
+            this, SLOT( onDownloadCompleted( QString, QDateTime ) ) );
     QObject::connect( CraneDownloader::m_pDownloadManager.data(), SIGNAL( progressed( QString, QDateTime ) ),
             this, SLOT( progressHandler( QString, QDateTime ) ) );
 }
@@ -92,9 +92,10 @@ void CraneDownloader::addNewUrlWithManager( QString const & address, QString loc
 	QObject::connect( new_download, SIGNAL( error( QString, QString )), dm, SLOT( errorHandler( QString, QString )) );
 	QObject::connect( new_download, SIGNAL( downloadStarted( QString )), dm,
 	        SLOT( downloadStartedHandler( QString )) );
-	QObject::connect( new_download, SIGNAL( completed( QString ) ), dm, SLOT( completionHandler( QString ) ) );
+	QObject::connect( new_download, SIGNAL( completed( QString, QDateTime ) ), dm,
+	        SLOT( completionHandler( QString, QDateTime ) ) );
 	QObject::connect( new_download, SIGNAL( stopped() ), new_download_thread, SLOT( quit() ) );
-	QObject::connect( new_download, SIGNAL( completed( QString ) ), new_download_thread, SLOT( quit() ) );
+	QObject::connect( new_download, SIGNAL( completed( QString, QDateTime ) ), new_download_thread, SLOT( quit() ) );
 	QObject::connect( new_download_thread, SIGNAL( finished() ), new_download_thread, SLOT( deleteLater() ) );
 
 	new_download_thread->start();
@@ -161,12 +162,17 @@ void CraneDownloader::removeItem( QString const & url, bool deleteFile )
 void CraneDownloader::errorHandler( QString what, QString url )
 {
     DownloadManager::active_download_list.remove( url );
-    emit error( what );
+    emit status( what );
 }
 
-void CraneDownloader::statusHandler( QString message )
+void CraneDownloader::onDownloadCompleted( QString url, QDateTime date_time )
 {
-    emit status( message );
+    emit progressed( url, date_time );
+}
+
+void CraneDownloader::onDownloadStarted( QString url )
+{
+    emit status( QString( "Download started on " ) + url );
 }
 
 void CraneDownloader::progressHandler( QString url, QDateTime date_time )

@@ -58,7 +58,7 @@ QVariant CraneDataModel::data( QVariantList const & indexPath )
 
         qint64 x = 0;
         for( int i = 0; i != information->thread_information_list.size(); ++i ){
-            x += information->thread_information_list[i].bytes_written;
+            x += ( information->thread_information_list[i].bytes_written - information->thread_information_list[i].thread_low_byte );
         }
         data_to_send[ "downloaded_size" ] = CraneDataModel::ConvertByte( x );
         data_to_send["path"] = information->path_to_file;
