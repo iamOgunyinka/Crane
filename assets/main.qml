@@ -1,6 +1,7 @@
 import bb.cascades 1.2
 import bb.system 1.2
 import bb.data 1.0
+import bb.platform 1.2
 
 TabbedPane
 {
@@ -8,12 +9,17 @@ TabbedPane
     property int number_of_downloads;
     property string downloads_directory;
     property int autocopy_clipboard;
+    property bool notify_on_completion;
     
     onCreationCompleted: {
         number_of_threads = settings.max_thread;
         number_of_downloads = settings.max_download;
         downloads_directory = settings.location
         autocopy_clipboard = settings.autocopy_from_clipboard
+        notify_on_completion = settings.app_notify
+        
+        Application.aboutToQuit.connect( notification.clearEffects )
+        Application.aboutToQuit.connect( notification.deleteAllFromInbox )
         Application.aboutToQuit.connect( download_manager.aboutToExit )
     }
     id: root
@@ -60,6 +66,8 @@ TabbedPane
                 number_of_downloads = settings.max_download;
                 downloads_directory = settings.location
                 autocopy_clipboard = settings.autocopy_from_clipboard
+                notify_on_completion = settings.app_notify
+                
                 page.destroy()
             }
             
@@ -68,6 +76,15 @@ TabbedPane
                 busy_wait_activity.stop();
                 system_toast.body = message
                 system_toast.show();
+            }
+            
+            function notify( filename )
+            {
+                if( notify_on_completion == 1 ){
+                    notification.title = "Download Complete.";
+                    notification.body = filename;
+                    notification.notify();
+                }
             }
             
             Page
@@ -87,6 +104,10 @@ TabbedPane
                     }
                 }
                 attachedObjects: [
+                    Notification {
+                        id: notification
+                        type: NotificationType.Default
+                    },
                     SystemPrompt {
                         id: addNewDownload
                         body: "Enter website address"
@@ -110,6 +131,8 @@ TabbedPane
                 onCreationCompleted: {
                     download_manager.status.connect( navPane.status );
                     download_manager.error.connect( navPane.status );
+                    download_manager.completed.connect( navPane.notify );
+                    _invoker.error.connect( navPane.status );
                 }
                 actions: [
                     ActionItem {
@@ -195,6 +218,15 @@ TabbedPane
                             contextActions: [
                                 ActionSet {
                                     ActionItem {
+                                        title: "Open"
+                                        imageSource: "asset:///images/open.png"
+                                        onTriggered: {
+                                            var data = list_view.dataModel.data( list_view.selected_download_indexpath );
+                                            var filename = data.path
+                                            _invoker.open( filename );
+                                        }
+                                    }
+                                    ActionItem {
                                         title: "Start"
                                         imageSource: "asset:///images/play.png"
                                         onTriggered: {
@@ -222,21 +254,21 @@ TabbedPane
                                         }
                                     }
                                     DeleteActionItem {
-                                        title: "Remove from list"
-                                        imageSource: "asset:///images/delete.png"
-                                        onTriggered: {
-                                            var data = list_view.dataModel.data( list_view.selected_download_indexpath )
-                                            list_view.remove_item( data.original_url, false )
-                                            list_view.dataModel.removeItem( list_view.selected_download_indexpath );
-                                        }
-                                    }
-                                    ActionItem {
-                                        title: "Delete file";
+                                        title: "Remove item and delete file"
                                         imageSource: "asset:///images/delete.png"
                                         onTriggered: {
                                             var data = list_view.dataModel.data( list_view.selected_download_indexpath )
                                             list_view.remove_item( data.original_url, true )
                                             list_view.dataModel.removeItem( list_view.selected_download_indexpath )
+                                        }
+                                    }
+                                    ActionItem {
+                                        title: "Remove item from list";
+                                        imageSource: "asset:///images/delete.png"
+                                        onTriggered: {
+                                            var data = list_view.dataModel.data( list_view.selected_download_indexpath )
+                                            list_view.remove_item( data.original_url, false )
+                                            list_view.dataModel.removeItem( list_view.selected_download_indexpath );
                                         }
                                     }
                                 }

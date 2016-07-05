@@ -7,10 +7,6 @@ Page {
     property int number_of_threads;
     property int number_of_downloads;
     
-//    signal threadsChanged( int new_thread_number )
-//    signal downloadsChanged( int new_download_number )
-//    signal directoryChanged( string new_path )
-    
     titleBar: TitleBar {
         kind: TitleBarKind.Default
         title: "Settings"

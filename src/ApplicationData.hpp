@@ -38,4 +38,19 @@ public:
 signals:
     void clipboardTextChanged( QString );
 };
+
+class AppInvoker : public QObject
+{
+    Q_OBJECT
+public:
+    AppInvoker( QObject *parent = NULL );
+    ~AppInvoker();
+
+    Q_INVOKABLE void open( QString const & filename );
+public slots:
+    void onInvocationCompleted();
+signals:
+    void error( QString );
+};
+
 #endif /* APPLICATIONDATA_HPP_ */

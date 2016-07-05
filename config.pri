@@ -47,6 +47,7 @@ config_pri_assets {
         $$quote($$BASEDIR/assets/images/home.png) \
         $$quote($$BASEDIR/assets/images/info.png) \
         $$quote($$BASEDIR/assets/images/music.png) \
+        $$quote($$BASEDIR/assets/images/open.png) \
         $$quote($$BASEDIR/assets/images/other.png) \
         $$quote($$BASEDIR/assets/images/pause.png) \
         $$quote($$BASEDIR/assets/images/picture.png) \

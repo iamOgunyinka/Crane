@@ -61,6 +61,7 @@ signals:
     void error( QString );
     void status( QString );
     void progressed( QString, QDateTime );
+    void completed( QString );
 public slots:
     void errorHandler( QString, QString );
     void onDownloadCompleted( QString, QDateTime );

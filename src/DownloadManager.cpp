@@ -168,6 +168,7 @@ void CraneDownloader::errorHandler( QString what, QString url )
 void CraneDownloader::onDownloadCompleted( QString url, QDateTime date_time )
 {
     emit progressed( url, date_time );
+    emit completed( url );
 }
 
 void CraneDownloader::onDownloadStarted( QString url )

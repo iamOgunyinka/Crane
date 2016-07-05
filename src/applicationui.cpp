@@ -67,6 +67,7 @@ void ApplicationUI::initFullUI()
     CraneDataModel         *data_model = new CraneDataModel;
     CraneFilteredDataModel *filtered_model = new CraneFilteredDataModel( data_model, this );
     ApplicationClipBoard   *clipboard = new ApplicationClipBoard( this );
+    AppInvoker             *app_invoker = new AppInvoker( this );
 
     QObject::connect( m_pDownloadManager, SIGNAL( progressed( QString, QDateTime ) ), filtered_model,
             SLOT( progressHandler( QString, QDateTime ) ) );
@@ -78,6 +79,7 @@ void ApplicationUI::initFullUI()
     qml->setContextProperty( "download_manager", m_pDownloadManager );
     qml->setContextProperty( "settings", m_pSettings );
     qml->setContextProperty( "_clipboard", clipboard );
+    qml->setContextProperty( "_invoker", app_invoker );
     // Create root object for the UI
     AbstractPane *root = qml->createRootObject<AbstractPane>();
 
