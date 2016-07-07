@@ -73,7 +73,9 @@ TabbedPane
             
             function status( message )
             {
-                busy_wait_activity.stop();
+                if( busy_wait_activity.running ){
+                    busy_wait_activity.stop();
+                }
                 system_toast.body = message
                 system_toast.show();
             }
@@ -85,6 +87,16 @@ TabbedPane
                     notification.body = filename;
                     notification.notify();
                 }
+            }
+            
+            function addNewDownload( url_ )
+            {
+                if( !busy_wait_activity.running ){
+                    busy_wait_activity.start();
+                }
+                download_manager.addNewUrl( url_, number_of_threads, 
+                    number_of_downloads, downloads_directory
+                );
             }
             
             Page
@@ -115,9 +127,7 @@ TabbedPane
                         onFinished: {
                             switch( value ){
                                 case SystemUiResult.ConfirmButtonSelection :
-                                    download_manager.addNewUrl( addNewDownload.inputFieldTextEntry(), number_of_threads, 
-                                    number_of_downloads, downloads_directory );
-                                    busy_wait_activity.start();
+                                    navPane.addNewDownload( addNewDownload.inputFieldTextEntry() );
                                     break;
                                 default :
                                     break;
@@ -133,6 +143,7 @@ TabbedPane
                     download_manager.error.connect( navPane.status );
                     download_manager.completed.connect( navPane.notify );
                     _invoker.error.connect( navPane.status );
+                    _invoker.sharedUrl.connect( navPane.addNewDownload );
                 }
                 actions: [
                     ActionItem {
@@ -193,16 +204,16 @@ TabbedPane
                                 text: "Finished"
                             }
                         }
-                    }
-                    Container {
                         ActivityIndicator {
                             id: busy_wait_activity
-                            preferredHeight: 200
-                            preferredWidth: 200
+                            preferredHeight: 100
+                            preferredWidth: 100
                             horizontalAlignment: HorizontalAlignment.Center
                             verticalAlignment: VerticalAlignment.Center
                         }
                     }
+//                    Container {
+//                    }
                     Container {
                         topPadding: 20
                         ListView {

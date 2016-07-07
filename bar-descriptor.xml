@@ -44,7 +44,21 @@
        <platformArchitecture>x86</platformArchitecture>
        <asset path="x86/o-g/ProjectGlass" entry="true" type="Qnx/Elf">ProjectGlass</asset>
     </configuration>
-
+    
+    <invoke-target id="com.example.ProjectGlass">
+        <invoke-target-type>application</invoke-target-type>
+        <invoke-target-name>Crane Download Manager</invoke-target-name>
+        <filter>
+            <action>bb.action.SHARE</action>
+            <mime-type>*</mime-type>
+            <property var="uris" value="http://,https://,file://"/>
+        </filter>
+        <icon>
+            <image>
+                icon1.png
+            </image>
+        </icon>
+    </invoke-target>
     <!-- The name that is displayed in the BlackBerry 10 application installer.
          May have multiple values for each language. See samples or xsd schema file. Optional. -->
     <name>Crane Download Manager</name>
@@ -69,7 +83,8 @@
     <!-- <copyright></copyright> -->
 
     <!--  Name of author which is used for signing. Must match the developer name of your development certificate. -->
-    <author>Example Inc.</author>
+    <authorId>gYAAgPnh_0HWRXnI8_K5OQOiEn0</authorId>
+    <author>Joshua</author>
 
     <!--  Unique author ID assigned by signing authority. Required if using debug tokens. -->
     <!-- <authorId>ABC1234YjsnUk235h</authorId> -->
@@ -78,24 +93,6 @@
         <autoOrients>true</autoOrients>
         <systemChrome>none</systemChrome>
     </initialWindow>
-    
-    <invoke-target id="com.wiikast.manager.crane">
-        <invoke-target-type>application</invoke-target-type>
-        <invoke-target-name>Crane</invoke-target-name>
-        <filter>
-            <action>bb.action.OPEN </action>
-            <action>bb.action.SHARE</action>
-            <mime-type>text/url</mime-type>
-            <mime-type>text/x-url</mime-type>
-            <property var="uris" value="http://,https://,ftp://"/>
-        </filter>
-        <icon>
-            <image>
-                icon.png
-            </image>
-        </icon>
-    </invoke-target>
-
     <!--  The icon for the application, which should be 114x114. -->
     <icon>
         <image>icon1.png</image>

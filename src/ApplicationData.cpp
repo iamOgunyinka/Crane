@@ -92,3 +92,8 @@ void AppInvoker::onInvocationCompleted()
     }
     reply->deleteLater();
 }
+
+void AppInvoker::onUrlShared( QString url )
+{
+    emit sharedUrl( url );
+}

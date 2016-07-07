@@ -53,7 +53,8 @@ private:
     Settings                    *m_pSettings;
     CraneDownloader             *m_pDownloadManager;
 
-
+signals:
+    void sharedUrlObtained( QString );
 private:
     void initFullUI();
 };

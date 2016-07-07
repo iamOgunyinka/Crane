@@ -49,8 +49,10 @@ public:
     Q_INVOKABLE void open( QString const & filename );
 public slots:
     void onInvocationCompleted();
+    void onUrlShared( QString );
 signals:
     void error( QString );
+    void sharedUrl( QString );
 };
 
 #endif /* APPLICATIONDATA_HPP_ */

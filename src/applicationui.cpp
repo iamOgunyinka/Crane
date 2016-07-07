@@ -50,16 +50,10 @@ ApplicationUI::ApplicationUI() :
 
 void ApplicationUI::onInvokeRequest( bb::system::InvokeRequest const & request )
 {
-    QString target = request.target();
-    QString action = request.action();
-    QString mimeType = request.mimeType();
     QString uri = request.uri().toString();
 
-    Q_UNUSED( target );
-    Q_UNUSED( action );
-    Q_UNUSED( mimeType );
-
     initFullUI();
+    emit sharedUrlObtained( uri );
 }
 
 void ApplicationUI::initFullUI()
@@ -69,6 +63,7 @@ void ApplicationUI::initFullUI()
     ApplicationClipBoard   *clipboard = new ApplicationClipBoard( this );
     AppInvoker             *app_invoker = new AppInvoker( this );
 
+    QObject::connect( this, SIGNAL( sharedUrlObtained( QString )), app_invoker, SLOT( onUrlShared( QString )));
     QObject::connect( m_pDownloadManager, SIGNAL( progressed( QString, QDateTime ) ), filtered_model,
             SLOT( progressHandler( QString, QDateTime ) ) );
     QObject::connect( m_pDownloadManager, SIGNAL( status( QString ) ), filtered_model, SLOT( refreshView() ) );
