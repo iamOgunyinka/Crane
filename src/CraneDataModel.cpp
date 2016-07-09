@@ -93,13 +93,19 @@ QMap<QString, QString> CraneDataModel::ExtensionLogoMap;
 void CraneDataModel::InstallExtensions()
 {
     ExtensionLogoMap.insert( QString( "mp3" ), QString( "asset:///images/music.png" ) );
+    ExtensionLogoMap.insert( QString( "aac" ), QString( "asset:///images/music.png" ) );
+    ExtensionLogoMap.insert( QString( "wav" ), QString( "asset:///images/music.png" ) );
     ExtensionLogoMap.insert( QString( "mp4" ), QString( "asset:///images/video.png" ) );
+    ExtensionLogoMap.insert( QString( "3gp" ), QString( "asset:///images/video.png" ) );
+    ExtensionLogoMap.insert( QString( "3gpp" ), QString( "asset:///images/video.png" ) );
     ExtensionLogoMap.insert( QString( "png" ), QString( "asset:///images/picture.png" ) );
     ExtensionLogoMap.insert( QString( "jpeg" ), QString( "asset:///images/picture.png" ) );
-    ExtensionLogoMap.insert( QString( "zip" ), QString( "asset:///images/other.png" ) );
+    ExtensionLogoMap.insert( QString( "gif" ), QString( "asset:///images/picture.png" ) );
+    ExtensionLogoMap.insert( QString( "zip" ), QString( "asset:///images/zip.png" ) );
     ExtensionLogoMap.insert( QString( "pdf" ), QString( "asset:///images/doc.png" ) );
     ExtensionLogoMap.insert( QString( "doc" ), QString( "asset:///images/doc.png" ) );
-    ExtensionLogoMap.insert( QString( "exe" ), QString( "asset:///images/other.png" ) );
+    ExtensionLogoMap.insert( QString( "exe" ), QString( "asset:///images/exe.png" ) );
+    ExtensionLogoMap.insert( QString( "msi" ), QString( "asset:///images/exe.png" ) );
     ExtensionLogoMap.insert( QString( "jpg" ), QString( "asset:///images/picture.png" ) );
 }
 

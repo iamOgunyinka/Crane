@@ -212,8 +212,6 @@ TabbedPane
                             verticalAlignment: VerticalAlignment.Center
                         }
                     }
-//                    Container {
-//                    }
                     Container {
                         topPadding: 20
                         ListView {

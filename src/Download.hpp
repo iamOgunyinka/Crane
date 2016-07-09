@@ -10,6 +10,7 @@
 
 #include <QObject>
 #include <QtNetwork/QNetworkAccessManager>
+#include <QFtp>
 #include <QtNetwork/QNetworkReply>
 #include <QFile>
 #include <QDate>
@@ -30,6 +31,7 @@ private:
     unsigned int   use_range_;
     unsigned int   thread_number_;
     unsigned int   use_lock_;
+    unsigned int   ftp_resuming_;
     QFile          *file_;
     QNetworkReply  *reply_;
     QTime          timer;
@@ -43,7 +45,12 @@ public slots:
     void downloadProgressHandler( qint64, qint64 );
     void startDownload();
     void stopDownload();
+    void onFtpReadyReadHandler();
+    void onFtpRawCommandReply( int, QString const & );
+    void onFtpCommandFinished( int, bool );
+    void onFtpDone( bool );
 signals:
+    void fileSizeObtained( quint64 );
     void completed();
     void stopped();
     void error( QString );
@@ -58,9 +65,9 @@ public:
     void acceptRange( bool flag ){ use_range_ = flag; }
     QUrl url() const { return url_; }
     void useLock( bool ul = true ) { use_lock_ = ul; }
-
-    static QNetworkAccessManager* GetNetworkManager() { return &network_manager; }
-    static QNetworkAccessManager network_manager;
+    void ftpResume( bool resuming = false ){ ftp_resuming_ = resuming; }
+    static QNetworkAccessManager*   GetHttpNetworkManager() { return &http_network_manager; }
+    static QNetworkAccessManager    http_network_manager;
     static QMutex mutex;
 };
 
@@ -74,7 +81,6 @@ public:
     QList<DownloadItem*>        download_item_list;
     unsigned int                byte_range_specified;
     QSharedPointer<Information> download_information;
-
     unsigned int        max_number_of_threads;
     QString             download_directory;
     QTimer              timer;
@@ -88,6 +94,8 @@ public slots:
     void startDownload();
     void cleanUpOnExit();
     void stopDownload();
+    void onFileSizeObtained( quint64 );
+
 signals:
     void error( QString message, QString url );
     void completed( QString, QDateTime );
@@ -102,7 +110,10 @@ public:
 
 private:
     void startDownloadImpl( int threads_to_use );
-    void addNewUrlImpl( QString const & url, QNetworkReply *response );
+    void addNewHttpUrlImpl( QString const & url, QNetworkReply *response );
+    void addNewFtpUrlImpl( QString const & url );
+    void ftpDownloadFile();
     QUrl redirectUrl( QUrl const & possibleRedirectUrl, QUrl const & oldRedirectUrl) const;
+    void connectSignalsCallbacks( DownloadItem*, QThread * );
 };
 #endif /* DOWNLOAD_HPP_ */

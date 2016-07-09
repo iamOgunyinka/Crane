@@ -78,7 +78,7 @@ void DownloadInfo::readDownloadSettingsFile()
         info->speed = key_value["speed"].toString();
         info->accept_ranges = key_value["accept_ranges"].toUInt();
         info->download_status = Information::IntToStatus( key_value["status"].toInt() );
-        info->size_of_file_in_bytes = key_value["file_size"].toUInt();
+        info->size_of_file_in_bytes = key_value["file_size"].toULongLong();
 
         QVariantList threads = key_value["threads"].toList();
         Information::ThreadInfo thread_info;

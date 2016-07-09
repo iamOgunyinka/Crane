@@ -62,7 +62,7 @@ struct Information
 
     unsigned int    accept_ranges;
     ThreadInfoList  thread_information_list;
-    qint64          size_of_file_in_bytes;
+    quint64         size_of_file_in_bytes;
 };
 
 class DownloadInfo: public QObject
