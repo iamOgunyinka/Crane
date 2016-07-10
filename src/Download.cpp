@@ -32,23 +32,23 @@ void DownloadItem::startDownload()
         return;
     }
     if( url_.scheme() == QString( "ftp" ) ){
-        QFtp *ftp = new QFtp;
+        ftp_ = new QFtp( this );
 
-        ftp->connectToHost( url_.host() ); // command 1.
-        ftp->login(); // 2
+        ftp_->connectToHost( url_.host() ); // command 1.
+        ftp_->login(); // 2
         if( ftp_resuming_ ){
-            ftp->rawCommand( "REST " + QString::number( number_of_bytes_written_ ) );
+            ftp_->rawCommand( "REST " + QString::number( number_of_bytes_written_ ) );
         } else {
-            ftp->rawCommand( "SIZE " + url_.path() ); // 3 ->get the file size
+            ftp_->rawCommand( "SIZE " + url_.path() ); // 3 ->get the file size
         }
-        ftp->get( url_.path() );
-        ftp->close();
+        ftp_->get( url_.path() );
+        ftp_->close();
 
-        QObject::connect( ftp, SIGNAL( readyRead() ), this, SLOT( onFtpReadyReadHandler() ) );
-        QObject::connect( ftp, SIGNAL( rawCommandReply( int, QString ) ), this, SLOT( onFtpRawCommandReply( int, QString )) );
-        QObject::connect( ftp, SIGNAL( dataTransferProgress(qint64,qint64)), this, SLOT(downloadProgressHandler(qint64,qint64)));
-        QObject::connect( ftp, SIGNAL( commandFinished(int,bool) ), this, SLOT( onFtpCommandFinished( int, bool ) ) );
-        QObject::connect( ftp, SIGNAL( done( bool ) ), this, SLOT( onFtpDone( bool ) ) );
+        QObject::connect( ftp_, SIGNAL( readyRead() ), this, SLOT( onFtpReadyReadHandler() ) );
+        QObject::connect( ftp_, SIGNAL( rawCommandReply( int, QString ) ), this, SLOT( onFtpRawCommandReply( int, QString )) );
+        QObject::connect( ftp_, SIGNAL( dataTransferProgress(qint64,qint64)), this, SLOT(downloadProgressHandler(qint64,qint64)));
+        QObject::connect( ftp_, SIGNAL( commandFinished(int,bool) ), this, SLOT( onFtpCommandFinished( int, bool ) ) );
+        QObject::connect( ftp_, SIGNAL( done( bool ) ), this, SLOT( onFtpDone( bool ) ) );
     } else {
         QNetworkRequest request( url_ );
         request.setRawHeader( "USER-AGENT", "Mozilla Firefox" );
@@ -184,20 +184,19 @@ void DownloadItem::flush()
 void DownloadItem::stopDownload()
 {
     if( url_.scheme() == QString( "ftp" ) ){
-        QFtp *ftp = qobject_cast<QFtp*>( sender() );
-        ftp->abort();
 
         file_->seek( number_of_bytes_written_ );
-        qint64 size_of_buffer = file_->write( ftp->readAll() );
+        qint64 size_of_buffer = file_->write( ftp_->readAll() );
         number_of_bytes_written_ += size_of_buffer;
 
-        QObject::disconnect( ftp, SIGNAL( readyRead() ), this, SLOT( onFtpReadyReadHandler() ) );
-        QObject::disconnect( ftp, SIGNAL( rawCommandReply( int, QString ) ), this, SLOT( onFtpRawCommandReply( int, QString )) );
-        QObject::disconnect( ftp, SIGNAL(dataTransferProgress(qint64,qint64)), this, SLOT(downloadProgressHandler(qint64,qint64)));
-        QObject::disconnect( ftp, SIGNAL( commandFinished(int,bool) ), this, SLOT( onFtpCommandFinished( int, bool ) ) );
-        QObject::disconnect( ftp, SIGNAL( done( bool ) ), this, SLOT( onFtpDone( bool ) ) );
+        ftp_->abort();
+        QObject::disconnect( ftp_, SIGNAL( readyRead() ), this, SLOT( onFtpReadyReadHandler() ) );
+        QObject::disconnect( ftp_, SIGNAL( rawCommandReply( int, QString ) ), this, SLOT( onFtpRawCommandReply( int, QString )) );
+        QObject::disconnect( ftp_, SIGNAL(dataTransferProgress(qint64,qint64)), this, SLOT(downloadProgressHandler(qint64,qint64)));
+        QObject::disconnect( ftp_, SIGNAL( commandFinished(int,bool) ), this, SLOT( onFtpCommandFinished( int, bool ) ) );
+        QObject::disconnect( ftp_, SIGNAL( done( bool ) ), this, SLOT( onFtpDone( bool ) ) );
 
-        ftp->deleteLater();
+        ftp_->deleteLater();
         emit stopped();
         return;
     }
@@ -530,6 +529,8 @@ void DownloadComponent::ftpDownloadFile()
     }
     connectSignalsCallbacks( pDownload, pThread );
     this->download_item_list.push_back( pDownload );
+
+    emit downloadStarted( download_information->original_url );
     pThread->start();
 }
 
@@ -556,6 +557,9 @@ void DownloadComponent::addNewHttpUrlImpl( QString const & url, QNetworkReply *r
             if( filename_itself.startsWith( '"' ) ){
                 QFileInfo fileInfo( filename_itself );
                 download_information->filename = fileInfo.fileName();
+                while( download_information->filename.startsWith( '"') ){
+                    download_information->filename.remove( '"' );
+                }
                 while( download_information->filename.endsWith( '"') ){
                     download_information->filename.chop(1);
                 }
@@ -676,7 +680,7 @@ void DownloadComponent::progressStatusHandler( unsigned int thread, int percent,
         x += download_information->thread_information_list[i].percentage;
     }
     download_information->percentage = ( x / number_of_threads );
-    download_information->speed = QString::number( speed ) + unit;
+    download_information->speed = QString::number( speed, 'f', 2 ) + unit;
     emit progressChanged( download_information->original_url, download_information->time_started );
 }
 

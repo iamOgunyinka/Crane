@@ -34,6 +34,7 @@ private:
     unsigned int   ftp_resuming_;
     QFile          *file_;
     QNetworkReply  *reply_;
+    QFtp           *ftp_;
     QTime          timer;
 
     void flush();

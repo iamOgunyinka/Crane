@@ -267,8 +267,9 @@ TabbedPane
                                         imageSource: "asset:///images/delete.png"
                                         onTriggered: {
                                             var data = list_view.dataModel.data( list_view.selected_download_indexpath )
-                                            list_view.remove_item( data.original_url, true )
-                                            list_view.dataModel.removeItem( list_view.selected_download_indexpath )
+                                            var url_ = data.original_url;
+                                            list_view.dataModel.removeItem( list_view.selected_download_indexpath );
+                                            list_view.remove_item( url_, true )
                                         }
                                     }
                                     ActionItem {
@@ -276,8 +277,9 @@ TabbedPane
                                         imageSource: "asset:///images/delete.png"
                                         onTriggered: {
                                             var data = list_view.dataModel.data( list_view.selected_download_indexpath )
-                                            list_view.remove_item( data.original_url, false )
+                                            var url_ = data.original_url;
                                             list_view.dataModel.removeItem( list_view.selected_download_indexpath );
+                                            list_view.remove_item( url_, false )
                                         }
                                     }
                                 }
