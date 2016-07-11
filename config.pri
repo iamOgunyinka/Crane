@@ -37,6 +37,7 @@ simulator {
 config_pri_assets {
     OTHER_FILES += \
         $$quote($$BASEDIR/assets/details.qml) \
+        $$quote($$BASEDIR/assets/help.qml) \
         $$quote($$BASEDIR/assets/images/5_content_new.png) \
         $$quote($$BASEDIR/assets/images/5_content_remove.png) \
         $$quote($$BASEDIR/assets/images/all.png) \

@@ -34,12 +34,13 @@ TabbedPane
     showTabsOnActionBar: true
     Menu.definition: MenuDefinition {
         helpAction: HelpActionItem {
-        
+            onTriggered: {
+                navPane.push( helpViewSheet.createObject() )
+            }
         }
         settingsAction: SettingsActionItem {
             onTriggered: {
-                var settings = settingsPage.createObject();
-                navPane.push( settings )
+                navPane.push( settingsPage.createObject() )
             }
         }
     }
@@ -51,6 +52,10 @@ TabbedPane
         ComponentDefinition {
             id: detailsViewSheet
             source: "asset:///details.qml"
+        },
+        ComponentDefinition {
+            id: helpViewSheet
+            source: "asset:///help.qml"
         }
     ]
     Tab
@@ -145,6 +150,7 @@ TabbedPane
                     _invoker.error.connect( navPane.status );
                     _invoker.sharedUrl.connect( navPane.addNewDownload );
                 }
+                /*
                 actions: [
                     ActionItem {
                         title: "All"
@@ -179,6 +185,7 @@ TabbedPane
                         imageSource: "asset:///images/other.png"
                     }
                 ]
+                */
                 Container {
                     topPadding: 20
                     rightPadding: 20

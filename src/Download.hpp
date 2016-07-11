@@ -25,9 +25,9 @@ class DownloadItem : public QObject
 
 private:
     QUrl           url_;
-    qint64         low_;
-    qint64         high_;
-    qint64         number_of_bytes_written_;
+    quint64        low_;
+    quint64        high_;
+    quint64        number_of_bytes_written_;
     unsigned int   use_range_;
     unsigned int   thread_number_;
     unsigned int   use_lock_;
@@ -66,7 +66,7 @@ public:
     void acceptRange( bool flag ){ use_range_ = flag; }
     QUrl url() const { return url_; }
     void useLock( bool ul = true ) { use_lock_ = ul; }
-    void ftpResume( bool resuming = false ){ ftp_resuming_ = resuming; }
+    void ftpResume( bool resuming ){ ftp_resuming_ = resuming; }
     static QNetworkAccessManager*   GetHttpNetworkManager() { return &http_network_manager; }
     static QNetworkAccessManager    http_network_manager;
     static QMutex mutex;

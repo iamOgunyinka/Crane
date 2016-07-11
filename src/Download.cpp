@@ -96,6 +96,7 @@ void DownloadItem::onFtpRawCommandReply( int reply_code, QString const & detail 
                 emit error( this->file_->errorString() );
                 ftp->abort();
             }
+            high_ = file_size;
             emit fileSizeObtained( file_size );
         }
     } else if( ftp->currentId() == 4 ) {
@@ -276,7 +277,6 @@ DownloadComponent::DownloadComponent( QString address, QString directory, unsign
     }
 
     download_information->redirected_url = download_information->original_url = address;
-    download_information->path_to_file = directory;
     download_information->accept_ranges = 0;
     download_information->percentage = 0;
     download_information->size_of_file_in_bytes = 0;
@@ -302,6 +302,8 @@ void DownloadComponent::updateBytesWritten( unsigned int thread_number, qint64 b
 void DownloadComponent::onFileSizeObtained( quint64 file_size )
 {
     download_information->size_of_file_in_bytes = file_size;
+    download_information->thread_information_list[0].thread_high_byte = file_size;
+    emit downloadStarted( download_information->original_url );
 }
 
 void DownloadComponent::startDownload()
@@ -317,7 +319,6 @@ void DownloadComponent::startDownload()
         download_information = local_download_information;
 
         bool download_was_completed = download_information->download_status == Information::DownloadCompleted;
-
         if( download_was_completed ){
             QFile file( download_information->path_to_file );
 
@@ -530,7 +531,6 @@ void DownloadComponent::ftpDownloadFile()
     connectSignalsCallbacks( pDownload, pThread );
     this->download_item_list.push_back( pDownload );
 
-    emit downloadStarted( download_information->original_url );
     pThread->start();
 }
 
