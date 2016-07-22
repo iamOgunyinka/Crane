@@ -8,13 +8,15 @@
 #include <src/CraneDataModel.hpp>
 #include "DownloadInfo.hpp"
 
-CraneDataModel::CraneDataModel( QObject *parent ): DataModel( parent ), i( 0 )
+CraneDataModel::CraneDataModel( QObject *parent ): DataModel( parent ), i( 0 ),
+    view_type( AllDownloads )
 {
     InstallExtensions();
 }
 
 CraneDataModel::~CraneDataModel()
 {
+
 }
 
 bool CraneDataModel::hasChildren( QVariantList const & indexPath )
@@ -28,7 +30,8 @@ bool CraneDataModel::hasChildren( QVariantList const & indexPath )
 int CraneDataModel::childCount( QVariantList const & indexPath )
 {
     if( indexPath.size() == 0 ){
-        return DownloadInfo::DownloadInfoMap().size();
+        i = DownloadInfo::DownloadInfoMap().size();
+        return i;
     }
     return 0;
 }
@@ -120,6 +123,22 @@ QString  CraneDataModel::GetDownloadLogoForFileExtension( QString const & filena
     return QString( "asset:///images/other.png" );
 }
 
+void CraneDataModel::changeView( DownloadViewType view_type )
+{
+    switch( view_type )
+    {
+        case ActiveDownloads:
+            //doSomething;
+            break;
+        case AllDownloads:
+            // doSomething
+            break;
+        case CompletedDownloads:
+            // do something
+            break;
+    }
+}
+
 CraneFilteredDataModel::CraneFilteredDataModel( bb::cascades::DataModel *data_model, QObject *parent ):
         DataModel( parent ), m_pDataModel( data_model )
 {
@@ -153,7 +172,12 @@ QVariant CraneFilteredDataModel::data( QVariantList const & indexPath )
 
 void CraneFilteredDataModel::changeView( int view )
 {
-    Q_UNUSED( view );
+    DownloadViewType view_type = ActiveDownloads;
+    switch( view ){
+        case 1: view_type = CompletedDownloads; break;
+        case 2: view_type = AllDownloads; break;
+    }
+    qobject_cast<CraneDataModel*>( m_pDataModel )->changeView( view_type );
 }
 
 void CraneFilteredDataModel::removeItem( QVariantList const & indexPath )

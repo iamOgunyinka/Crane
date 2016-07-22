@@ -3,7 +3,7 @@
  *
  *  Created on: Jun 14, 2016
  *      Author: Joshua
-*/
+ */
 
 #include <src/Download.hpp>
 #include <bb/cascades/QMLDocument>
@@ -11,10 +11,10 @@
 using namespace bb::cascades;
 
 DownloadItem::DownloadItem( QUrl url, qint64 low, qint64 high, qint64 bytes_written, QObject *parent ):
-        QObject( parent ), url_( url ), low_( low ), high_( high ),
-        number_of_bytes_written_( bytes_written ), use_range_( 0 ),
-        thread_number_( 0 ), use_lock_( true ), ftp_resuming_( 0 ),
-        file_( NULL ), reply_( NULL )
+                    QObject( parent ), url_( url ), low_( low ), high_( high ),
+                    number_of_bytes_written_( bytes_written ), use_range_( 0 ),
+                    thread_number_( 0 ), use_lock_( true ), ftp_resuming_( 0 ),
+                    file_( NULL ), reply_( NULL ), ftp_( NULL )
 {
 }
 
@@ -55,7 +55,7 @@ void DownloadItem::startDownload()
 
         if( use_range_ ){
             QByteArray range = QByteArray( "bytes=" ) + QByteArray::number( number_of_bytes_written_, 0xA ) + QByteArray( "-" )
-                        + QByteArray::number( high_ );
+                                    + QByteArray::number( high_ );
             request.setRawHeader( "Range", range );
         }
 
@@ -269,8 +269,8 @@ void DownloadItem::downloadProgressHandler( qint64 bytes_received, qint64 bytes_
 }
 
 DownloadComponent::DownloadComponent( QString address, QString directory, unsigned int number_of_threads, QObject *parent ):
-        QObject( parent ), file( NULL ), byte_range_specified( 0 ), download_information( new Information ),
-        max_number_of_threads( number_of_threads ), download_directory( directory )
+                    QObject( parent ), file( NULL ), byte_range_specified( 0 ), download_information( new Information ),
+                    max_number_of_threads( number_of_threads ), download_directory( directory )
 {
     if( download_directory.startsWith( "file://" ) ){
         download_directory.remove( "file://" );
@@ -555,7 +555,7 @@ void DownloadComponent::addNewHttpUrlImpl( QString const & url, QNetworkReply *r
         if( index_of_filename != -1 ){
             QString filename_itself = QString::fromStdString( cdp_str.toStdString().substr( index_of_filename + 9 ) );
             if( filename_itself.startsWith( '"' ) ){
-                QFileInfo fileInfo( filename_itself );
+                QFileInfo fileInfo( QUrl( filename_itself ).path() );
                 download_information->filename = fileInfo.fileName();
                 while( download_information->filename.startsWith( '"') ){
                     download_information->filename.remove( '"' );
@@ -568,9 +568,9 @@ void DownloadComponent::addNewHttpUrlImpl( QString const & url, QNetworkReply *r
             }
         }
     }
-
     if( download_information->filename.isEmpty() ){
         download_information->filename = DownloadComponent::GetFilename( download_information->redirected_url, download_directory );
+        qDebug() << "Filename extracted: " << download_information->filename;
     }
 
     download_information->path_to_file = download_directory + "/" + download_information->filename;
@@ -695,43 +695,79 @@ QUrl DownloadComponent::redirectUrl( QUrl const & possibleRedirectUrl, QUrl cons
 
 QString DownloadComponent::GetFilename( QString const & url, QString const & directory )
 {
-    QFileInfo fileInfo( url );
-    QString basename = fileInfo.fileName();
-
-    if( basename.isEmpty() ){
-        QString new_name = QUuid::createUuid();
-        if( new_name.contains( '{' ) ){
-            new_name.remove( '{' );
-        }
-
-        if( new_name.contains( '}' ) ){
-            new_name.remove( '}' );
-        }
-        new_name.resize( 16 );
-        basename = new_name + ".nil";
+    QString filename = QFileInfo( QUrl( url ).path() ).fileName();
+    if( filename.isEmpty() ){
+        filename = QUuid::createUuid();
+        if( filename.contains( '{' ) ) filename.remove( '{' );
+        if( filename.contains( '}' ) ) filename.remove( '}' );
+        filename.resize( 16 );
+        filename += ".nil";
+    } else {
+        filename = DownloadComponent::normalizeFilename( url );
     }
+    return DownloadComponent::renameIfExistsFile( filename, directory );
+}
 
-    int index_of_extension = basename.lastIndexOf( '.' );
-    QString file_extension = QString::fromStdString( basename.toStdString().substr( index_of_extension ) );
-    if( QFile::exists( directory + QString( "/" ) + basename ) ){
-        QString filename = basename.left( index_of_extension );
+QString DownloadComponent::normalizeFilename( QString const & url )
+{
+    QString filename = QFileInfo( QUrl( url ).path() ).fileName();
+    QPair<QString, QString> basename_extension_pair = DownloadComponent::splitFilenameExtension( filename );
+    QString basename = basename_extension_pair.first, file_extension = basename_extension_pair.second;
 
-        int i = 1;
-        QString filepath = directory + QString( "/" ) + filename + QString( "(%1)%2" ).arg( i ).arg( file_extension );
-        while( QFile::exists( filepath ) ){
-            ++i;
-            filepath = directory + QString( "/" ) + filename + QString( "(%1)%2" ).arg( i ).arg( file_extension );
+    if( file_extension.isEmpty() ){
+        int last_index_of_frontslash = url.lastIndexOf( '/' );
+        if( last_index_of_frontslash != -1 ){
+            QString fp = QString::fromStdString( url.toStdString().substr( last_index_of_frontslash ) );
+            filename = QFileInfo( fp ).fileName();
         }
-        filename = filename + QString( "(%1)" ).arg( i );
-        if( filename.length() > 255 ){ // let's not incur the wrath of the FS -- max file size is 255
-            filename.resize( 100 );
-        }
-        return filename + file_extension;
+        basename_extension_pair = DownloadComponent::splitFilenameExtension( filename );
+        basename = basename_extension_pair.first;
+        file_extension = basename_extension_pair.second;
     }
+    DownloadComponent::trimFileExtension( file_extension );
+    filename = basename + file_extension;
+    return filename;
+}
 
-    if( basename.length() > 255 ){ // again, let's not incur the wrath of the file system.
-        basename.resize( 100 );
-        basename += file_extension;
+QString DownloadComponent::renameIfExistsFile( QString const & filename, QString const & directory )
+{
+    if( !DownloadComponent::fileExists( directory + "/" + filename ) ){
+        return filename;
     }
-    return basename; // actually, it's the filename
+    QPair<QString, QString> basename_extension_pair = DownloadComponent::splitFilenameExtension( filename );
+    QString basename = basename_extension_pair.first, file_extension = basename_extension_pair.second;
+    if( basename.length() > 255 ) basename.resize( 100 );
+
+    QString file_path;
+    int i = 0;
+    do {
+        ++i;
+        file_path = directory + QString( "/" ) + basename + QString( "(%1)" ).arg( i ) + file_extension;
+    } while( DownloadComponent::fileExists( file_path ) );
+    return file_path;
+}
+
+bool DownloadComponent::fileExists( QString const & filename )
+{
+    return QFile::exists( filename );
+}
+
+QPair<QString, QString> DownloadComponent::splitFilenameExtension( QString const & filename )
+{
+    int index_of_file_extension = filename.lastIndexOf( '.' );
+    if( index_of_file_extension == -1 ){
+        return QPair<QString, QString>( filename, QString() );
+    } else {
+        QString basename = filename.left( index_of_file_extension );
+        QString file_extension = QString::fromStdString( filename.toStdString().substr( index_of_file_extension ) );
+        return QPair<QString, QString>( basename, file_extension );
+    }
+}
+
+void DownloadComponent::trimFileExtension( QString & file_extension )
+{
+    int c = file_extension.indexOf( '&' );
+    if( c != -1 ){
+        file_extension = file_extension.left( c );
+    }
 }

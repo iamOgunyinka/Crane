@@ -13,6 +13,12 @@
 
 using namespace bb::cascades;
 
+enum DownloadViewType {
+    ActiveDownloads = 0,
+    CompletedDownloads,
+    AllDownloads
+};
+
 class CraneDataModel : public DataModel
 {
     Q_OBJECT
@@ -29,8 +35,10 @@ public:
     static void InstallExtensions();
     static QString ConvertByte( qint64 );
     virtual ~CraneDataModel();
+    void changeView( DownloadViewType view_type );
 private:
     int i;
+    DownloadViewType view_type;
 };
 
 class CraneFilteredDataModel : public DataModel

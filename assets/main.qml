@@ -195,20 +195,24 @@ TabbedPane
                         {
                             id: segmented_filter
                             onCreationCompleted: {
-                                segmented_filter.selectedIndex = 0;
+                                segmented_filter.selectedIndex = 2;
                             }
                             onSelectedIndexChanged: {
                                 model_.changeView( selectedIndex );
                             }
-                            Option 
+                            Option {
+                                id: allDownloadsOption
+                                text: "Active"
+                            }
+                            Option
                             {
                                 id: queueOption
-                                text: "Queue"
+                                text: "Completed"
                             }
                             Option
                             {
                                 id: finishedOption
-                                text: "Finished"
+                                text: "All"
                             }
                         }
                         ActivityIndicator {
@@ -269,24 +273,24 @@ TabbedPane
                                             list_view.stop( url_, false );
                                         }
                                     }
-                                    DeleteActionItem {
-                                        title: "Remove item and delete file"
-                                        imageSource: "asset:///images/delete.png"
-                                        onTriggered: {
-                                            var data = list_view.dataModel.data( list_view.selected_download_indexpath )
-                                            var url_ = data.original_url;
-                                            list_view.dataModel.removeItem( list_view.selected_download_indexpath );
-                                            list_view.remove_item( url_, true )
-                                        }
-                                    }
                                     ActionItem {
                                         title: "Remove item from list";
                                         imageSource: "asset:///images/delete.png"
                                         onTriggered: {
                                             var data = list_view.dataModel.data( list_view.selected_download_indexpath )
                                             var url_ = data.original_url;
-                                            list_view.dataModel.removeItem( list_view.selected_download_indexpath );
                                             list_view.remove_item( url_, false )
+                                            list_view.dataModel.removeItem( list_view.selected_download_indexpath );
+                                        }
+                                    }
+                                    DeleteActionItem {
+                                        title: "Remove item and delete file"
+                                        imageSource: "asset:///images/delete.png"
+                                        onTriggered: {
+                                            var data = list_view.dataModel.data( list_view.selected_download_indexpath )
+                                            var url_ = data.original_url;
+                                            list_view.remove_item( url_, true )
+                                            list_view.dataModel.removeItem( list_view.selected_download_indexpath );
                                         }
                                     }
                                 }

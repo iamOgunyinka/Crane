@@ -116,5 +116,11 @@ private:
     void ftpDownloadFile();
     QUrl redirectUrl( QUrl const & possibleRedirectUrl, QUrl const & oldRedirectUrl) const;
     void connectSignalsCallbacks( DownloadItem*, QThread * );
+
+    static bool fileExists( QString const & filename );
+    static QString normalizeFilename( QString const & filename );
+    static QString renameIfExistsFile( QString const & filename, QString const & directory );
+    static QPair<QString, QString> splitFilenameExtension( QString const & filename );
+    static void trimFileExtension( QString & file_extension );
 };
 #endif /* DOWNLOAD_HPP_ */
