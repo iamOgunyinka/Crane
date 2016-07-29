@@ -20,84 +20,112 @@ Page {
                 id: allTextDef
             }
         ]
-        Container {
-            layout: StackLayout {
-                orientation: LayoutOrientation.LeftToRight
-            }
-            Label {
-                text: "Filename"
-                textStyle.base: allTextDef.style
-            }
-            Label {
-                text: data.filename
-            }
-        }
-        Divider {}
-        Container {
-            layout: StackLayout {
-                orientation: LayoutOrientation.LeftToRight
-            }
-            Label {
-                text: "File Size"
-                textStyle.base: allTextDef.style
-            }
-            Label {
-                text: data.total_size
-            }
-        }
-        Divider {}
-        Container {
-            layout: StackLayout {
-                orientation: LayoutOrientation.LeftToRight
-            }
-            Label {
-                text: "Downloaded Size"
-                textStyle.base: allTextDef.style
-            }
-            Label {
-                text: data.downloaded_size
-            }
-        }
-        Divider {}
-        Container {
-            Label {
-                text: "Location on phone"
-                textStyle.base: allTextDef.style
-            }
-            Label {
-                text: data.path
-            }
-        }
-        Divider {}
-        Container {
-            layout: StackLayout {
-                orientation: LayoutOrientation.LeftToRight
-            }
-            Label {
-                text: "Resumable"
-                textStyle.base: allTextDef.style
-            }
-            Label {
-                text: ( data.resumable == 1 ? "true" : "false" )
-            }
-        }
-        Divider {}
-        Label {
-            text: "Web address"
-            textStyle.base: allTextDef.style
-        }
-        Container {
-            layout: StackLayout {
-                orientation: LayoutOrientation.LeftToRight
-            }
-            Label {
-                id: url_text
-                text: data.original_url
-            }
-            Button {
-                text: "Copy"
-                onClicked: {
-                    _clipboard.setClipboardText( url_text.text );
+        ScrollView {
+            topMargin: 20
+            leftMargin: 20
+            rightMargin: 20
+            
+            Container {
+                Container {
+                    Label {
+                        text: "Filename"
+                        textStyle.base: allTextDef.style
+                    }
+                    Label {
+                        text: data.filename
+                    }
+                }
+                Divider {}
+                Container {
+                    layout: StackLayout {
+                        orientation: LayoutOrientation.LeftToRight
+                    }
+                    Label {
+                        text: "File Size"
+                        textStyle.base: allTextDef.style
+                    }
+                    Label {
+                        text: data.total_size
+                    }
+                }
+                Divider {}
+                Container {
+                    layout: StackLayout {
+                        orientation: LayoutOrientation.LeftToRight
+                    }
+                    Label {
+                        text: "Downloaded Size"
+                        textStyle.base: allTextDef.style
+                    }
+                    Label {
+                        text: data.downloaded_size
+                    }
+                }
+                Divider {}
+                Container {
+                    Label {
+                        text: "Location on phone"
+                        textStyle.base: allTextDef.style
+                    }
+                    Label {
+                        text: data.path
+                    }
+                }
+                Divider {}
+                Container {
+                    layout: StackLayout {
+                        orientation: LayoutOrientation.LeftToRight
+                    }
+                    Label {
+                        text: "Resumable"
+                        textStyle.base: allTextDef.style
+                    }
+                    Label {
+                        text: ( data.resumable == 1 ? "Yes" : "No" )
+                    }
+                }
+                Divider {}
+                Container {
+                    layout: StackLayout {
+                        orientation: LayoutOrientation.LeftToRight
+                    }
+                    Label {
+                        text: "Time Started"
+                        textStyle.base: allTextDef.style
+                    }
+                    Label {
+                        text: data.time_started
+                    }
+                }
+                Divider {}
+                Container {
+                    layout: StackLayout {
+                        orientation: LayoutOrientation.LeftToRight
+                    }
+                    Label {
+                        text: "Time completed"
+                        textStyle.base: allTextDef.style
+                    }
+                    Label {
+                        text: data.time_ended
+                    }
+                }
+                Divider {}
+                Label {
+                    text: "Web address"
+                    textStyle.base: allTextDef.style
+                }
+                Container {
+                    Label {
+                        id: url_text
+                        text: data.original_url
+                    }
+                    Button {
+                        text: "Copy( web address )"
+                        onClicked: {
+                            _clipboard.setClipboardText( url_text.text );
+                        }
+                    }
                 }
             }
         }

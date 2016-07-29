@@ -2,6 +2,8 @@ import bb.cascades 1.2
 import bb.system 1.2
 import bb.data 1.0
 import bb.platform 1.2
+import custom_ad.smaatosdk 1.0
+import custom_ad.smaatoapi 1.0
 
 TabbedPane
 {
@@ -10,6 +12,7 @@ TabbedPane
     property string downloads_directory;
     property int autocopy_clipboard;
     property bool notify_on_completion;
+    property string new_image_location
     
     onCreationCompleted: {
         number_of_threads = settings.max_thread;
@@ -18,6 +21,14 @@ TabbedPane
         autocopy_clipboard = settings.autocopy_from_clipboard
         notify_on_completion = settings.app_notify
         
+        switch( Application.themeSupport.theme.colorTheme.style ){
+            case VisualStyle.Bright:
+                new_image_location = "asset:///images/new_bright.png";
+                break;
+            case VisualStyle.Dark:
+                new_image_location = "asset:///images/new_dark.png";
+                break;
+        }
         Application.aboutToQuit.connect( notification.clearEffects )
         Application.aboutToQuit.connect( notification.deleteAllFromInbox )
         Application.aboutToQuit.connect( download_manager.aboutToExit )
@@ -111,7 +122,7 @@ TabbedPane
                     appearance: TitleBarAppearance.Default
                     kind: TitleBarKind.Default
                     dismissAction: ActionItem {
-                        imageSource: "asset:///images/5_content_new.png"
+                        imageSource: new_image_location
                         onTriggered: {
                             if( autocopy_clipboard == 1 ){
                                 addNewDownload.inputField.defaultText = _clipboard.clipboardText();
@@ -121,6 +132,25 @@ TabbedPane
                     }
                 }
                 attachedObjects: [
+                    SSmaatoAPI {
+                        id: ssmaato_api
+                        autoRefreshPeriod: 30
+                    },
+                    OrientationHandler {
+                        id: orientation_handler
+                        onOrientationChanged: {
+                            if( adView.viewSize == SSmaatoAdView.AdViewSizeFullScreenPortrait || 
+                                adView.viewSize == SSmaatoAdView.AdViewSizeFullScreenLandscape )
+                            {
+                                if( orientation == OrientationSupport.orientation.Landscape ){
+                                    adView.viewSize = SSmaatoAdView.AdViewSizeFullScreenLandscape;
+                                } else {
+                                    adView.viewSize = SSmaatoAdView.AdViewSizeFullScreenPortrait;
+                                }
+                            }
+                            adView.updateAd();
+                        }
+                    },
                     Notification {
                         id: notification
                         type: NotificationType.Default
@@ -144,75 +174,58 @@ TabbedPane
                     }
                 ]
                 onCreationCompleted: {
-                    download_manager.status.connect( navPane.status );
+                    download_manager.downloadStarted.connect( navPane.status );
                     download_manager.error.connect( navPane.status );
                     download_manager.completed.connect( navPane.notify );
                     _invoker.error.connect( navPane.status );
                     _invoker.sharedUrl.connect( navPane.addNewDownload );
                 }
-                /*
-                actions: [
-                    ActionItem {
-                        title: "All"
-                        imageSource: "asset:///images/all.png"
-                    },
-                    ActionItem {
-                        title: "Documents"
-                        imageSource: "asset:///images/doc.png"
-                    },
-                    ActionItem {
-                        title: "Images"
-                        imageSource: "asset:///images/picture.png"
-                    },
-                    ActionItem {
-                        title: "Music"
-                        imageSource: "asset:///images/music.png"
-                    },
-                    ActionItem {
-                        title: "Video"
-                        imageSource: "asset:///images/video.png"
-                    },
-                    ActionItem {
-                        title: "Programs"
-                        imageSource: "asset:///images/exe.png"
-                    },
-                    ActionItem {
-                        title: "Archives"
-                        imageSource: "asset:///images/zip.png"
-                    },
-                    ActionItem {
-                        title: "Others"
-                        imageSource: "asset:///images/other.png"
-                    }
-                ]
-                */
                 Container {
                     topPadding: 20
                     rightPadding: 20
                     leftPadding: 20
+                    id: parety
+                    
                     Container {
+                        horizontalAlignment: HorizontalAlignment.Center
+                        verticalAlignment: VerticalAlignment.Center
+                        SSmaatoAdView {
+                            id: adView
+                            format: 1
+                            coppa: 0
+                            autoRefreshPeriod: 0
+                            gender: SSmaatoAdView.AdViewSizeNormal
+                            preferredWidth: 768
+                            preferredHeight: 128
+                            
+                            onCreationCompleted: {
+                                ssmaato_api.adFetchFinished.connect( adView.onAdFetchFinished );
+                                ssmaato_api.adFetchFailed.connect( adView.onAdFetchFailed )
+
+                                ssmaato_api.fetchAd();
+                            }
+                        }
+                        /*
+                        */
                         SegmentedControl
                         {
                             id: segmented_filter
                             onCreationCompleted: {
-                                segmented_filter.selectedIndex = 2;
+                                segmented_filter.selectedIndex = 0; // show completed downloads
                             }
                             onSelectedIndexChanged: {
                                 model_.changeView( selectedIndex );
                             }
-                            Option {
-                                id: allDownloadsOption
-                                text: "Active"
-                            }
+                            
                             Option
                             {
                                 id: queueOption
-                                text: "Completed"
+                                text: "All Downloads"
                             }
                             Option
                             {
                                 id: finishedOption
-                                text: "All"
+                                text: "Completed"
                             }
                         }
                         ActivityIndicator {

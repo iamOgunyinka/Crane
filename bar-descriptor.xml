@@ -70,7 +70,6 @@
 
     <!-- Fourth digit segment of the package version. First three segments are taken from the
          <versionNumber> element.  Must be an integer from 0 to 2^16-1 -->
-    <buildId>2</buildId>
 
     <!-- A string value (such as "v1", "2.5", or "Alpha 1") that represents the version of the application, as it should be shown to users. Optional. -->
     <!-- <versionLabel></versionLabel> -->
@@ -85,6 +84,7 @@
     <!--  Name of author which is used for signing. Must match the developer name of your development certificate. -->
     <authorId>gYAAgPnh_0HWRXnI8_K5OQOiEn0</authorId>
     <author>Joshua</author>
+    <buildId>3</buildId>
 
     <!--  Unique author ID assigned by signing authority. Required if using debug tokens. -->
     <!-- <authorId>ABC1234YjsnUk235h</authorId> -->
@@ -111,7 +111,10 @@
     <permission system="true">run_native</permission>
     <permission>post_notification</permission>
     <permission>access_shared</permission>
+    <permission>read_device_identifying_information</permission>
+    <permission>access_internet</permission>
+    <permission>access_location_services</permission>
     <env var="LD_LIBRARY_PATH" value="app/native/lib:/usr/lib/qt4/lib"/>
-    <env var="CASCADES_THEME" value="bright"/>
+    <env var="CASCADES_THEME" value="default"/>
 
 </qnx>

@@ -32,31 +32,32 @@ namespace bb
 
 class QTranslator;
 
-/*!
- * @brief Application UI object
- *
- * Use this object to create and init app UI, to create context objects, to register the new meta types etc.
- */
-class ApplicationUI : public QObject
-{
-    Q_OBJECT
-public:
-    ApplicationUI();
-    virtual ~ApplicationUI() {}
-private slots:
-    void onSystemLanguageChanged();
-    void onInvokeRequest( bb::system::InvokeRequest const & );
-private:
-    QTranslator                 *m_pTranslator;
-    bb::cascades::LocaleHandler * m_pLocaleHandler;
-    bb::system::InvokeManager   *m_pInvokeManager;
-    Settings                    *m_pSettings;
-    CraneDownloader             *m_pDownloadManager;
+namespace CraneDM {
+    /*!
+     * @brief Application UI object
+     *
+     * Use this object to create and init app UI, to create context objects, to register the new meta types etc.
+     */
+    class ApplicationUI : public QObject
+    {
+        Q_OBJECT
+    public:
+        ApplicationUI();
+        virtual ~ApplicationUI() {}
+    private slots:
+        void onSystemLanguageChanged();
+        void onInvokeRequest( bb::system::InvokeRequest const & );
+    private:
+        QTranslator                 *m_pTranslator;
+        bb::cascades::LocaleHandler * m_pLocaleHandler;
+        bb::system::InvokeManager   *m_pInvokeManager;
+        Settings                    *m_pSettings;
+        CraneDownloader             *m_pDownloadManager;
 
-signals:
-    void sharedUrlObtained( QString );
-private:
-    void initFullUI();
-};
-
+    signals:
+        void sharedUrlObtained( QString );
+    private:
+        void initFullUI();
+    };
+}
 #endif /* ApplicationUI_HPP_ */

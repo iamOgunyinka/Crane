@@ -89,6 +89,35 @@ Page {
                     textStyle.textAlign: TextAlign.Justify
                 }
                 Label {
+                    text: "Q: How do I change the theme?"
+                    textStyle.base: allTextDef.style
+                }
+                TextArea {
+                    text: "Go to \"Settings\". Select the app theme under the \"Application Settings\" header and choose between " +
+                    "the \"Dark\" and the \"Bright\" theme. For backward compatibility with Blackberry OS 10.1.x and 10.2.x, " +
+                    "I decided that changes to the app theme only needs to be visible when the app is restarted."
+                    editable: false
+                    textStyle.textAlign: TextAlign.Justify
+                }
+                
+                Label {
+                    text: "Q: Why are some downloads erroneous?"
+                    textStyle.base: allTextDef.style
+                }
+                TextArea {
+                    text: "Downloading files from different sources can be a very difficult task. Programmatically, there is a " +
+                    "'tag' associated with every document fetched on the web, it's called an HTTP Header. It contains almost all " +
+                    "the necessary information for the file you're fetching/downloading, such as its name, its location etcetera." +
+                    " Some servers that hosts these files sometimes choose not to deliver a handful header, which makes " +
+                    "downloading these files extremely difficult. Naively, I depended on the availability of these headers, and " +
+                    "this caused unncessary crashes in previous versions of CDM. Now, I just chose stability over crashes when " +
+                    "a header isn't helpful OR when unnecessary redirections occur. Bear with when CDM doesn't download the " +
+                    "files you want, I advice you resort to your browser for help. Apologies."
+                    
+                    editable: false
+                    textStyle.textAlign: TextAlign.Justify
+                }
+                Label {
                     text: "Q: Oh my! Why does the app behave weirdly with FTP?"
                     textStyle.base: allTextDef.style
                 }
@@ -101,12 +130,23 @@ Page {
                     textStyle.textAlign: TextAlign.Justify
                 }
                 Label {
-                    text: "Q: How do I request a feature I want?"
+                    text: "Q: How often are the updates?"
+                    textStyle.base: allTextDef.style
+                }
+                TextArea {
+                    text: "This will probably be the last update. I'm cooking up some real cross-platform apps and this is " +
+                    "gonna be my full-time job in the coming months."
+                    editable: false
+                    textStyle.textAlign: TextAlign.Justify
+                }
+                
+                Label {
+                    text: "Bobby: \"I want a change, you Idjit!\""
                     textStyle.base: allTextDef.style
                 }
                 TextArea {
                     text: "I try my best to read all reviews and work on them, but to hasten your request, please push a mail to: " +
-                    "ogunyinkajoshua@yahoo.com"
+                    "ogunyinkajoshua@yahoo.com OR speak with me directly on: https://facebook.com/TheRealOgunyinka/"
                     editable: false
                     textStyle.textAlign: TextAlign.Justify
                 }

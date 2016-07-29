@@ -4,10 +4,86 @@ BASEDIR = $$quote($$_PRO_FILE_PWD_)
 device {
     CONFIG(debug, debug|release) {
         profile {
+            INCLUDEPATH += $$quote(${QNX_TARGET}/usr/include/bb/device) \
+                $$quote(${QNX_TARGET}/usr/include/bb/platform) \
+                $$quote(C:/Users/adonai/Documents/SOMA_SDK_for_BLACKBERRY_V1.1.3/Smaato-SmaatoSDK-BB10-v1.1.3-2014-07-02-A/Smaato-SmaatoSDK-BB10-v1.1.3-2014-07-02-A/SmaatoSDK) \
+                $$quote(C:/Users/adonai/momentics-workspace/ProjectGlass/src/public) \
+                $$quote(C:/Users/adonai/momentics-workspace/SmaatoSDK/public) \
+                $$quote(${QNX_TARGET}/usr/include/qt4/QtNetwork) \
+                $$quote(${QNX_TARGET}/usr/include/bb/data) \
+                $$quote(${QNX_TARGET}/usr/include/qt4/QtXml) \
+                $$quote(${QNX_TARGET}/usr/include/bb) \
+                $$quote(${QNX_TARGET}/usr/include/bb/system)
+
+            DEPENDPATH += $$quote(${QNX_TARGET}/usr/include/bb/device) \
+                $$quote(${QNX_TARGET}/usr/include/bb/platform) \
+                $$quote(C:/Users/adonai/Documents/SOMA_SDK_for_BLACKBERRY_V1.1.3/Smaato-SmaatoSDK-BB10-v1.1.3-2014-07-02-A/Smaato-SmaatoSDK-BB10-v1.1.3-2014-07-02-A/SmaatoSDK) \
+                $$quote(C:/Users/adonai/momentics-workspace/ProjectGlass/src/public) \
+                $$quote(C:/Users/adonai/momentics-workspace/SmaatoSDK/public) \
+                $$quote(${QNX_TARGET}/usr/include/qt4/QtNetwork) \
+                $$quote(${QNX_TARGET}/usr/include/bb/data) \
+                $$quote(${QNX_TARGET}/usr/include/qt4/QtXml) \
+                $$quote(${QNX_TARGET}/usr/include/bb) \
+                $$quote(${QNX_TARGET}/usr/include/bb/system)
+
+            LIBS += -lSmaatoSDKDevice \
+                -lbbdevice \
+                -lQtXml \
+                -lbbpim \
+                -lbb \
+                -lbbsystem \
+                -lbbdata \
+                -lbbplatform \
+                -lQtNetwork
+
+            LIBS += $$quote(-LC:/Users/adonai/Documents/SOMA_SDK_for_BLACKBERRY_V1.1.3/Smaato-SmaatoSDK-BB10-v1.1.3-2014-07-02-A/Smaato-SmaatoSDK-BB10-v1.1.3-2014-07-02-A/SmaatoSDK) \
+                $$quote(-LC:/Users/adonai/momentics-workspace/ProjectGlass) \
+                $$quote(-LC:/Users/adonai/momentics-workspace/SmaatoSDK)
+
+            PRE_TARGETDEPS += $$quote(C:/Users/adonai/Documents/SOMA_SDK_for_BLACKBERRY_V1.1.3/Smaato-SmaatoSDK-BB10-v1.1.3-2014-07-02-A/Smaato-SmaatoSDK-BB10-v1.1.3-2014-07-02-A/SmaatoSDK) \
+                $$quote(C:/Users/adonai/momentics-workspace/ProjectGlass) \
+                $$quote(C:/Users/adonai/momentics-workspace/SmaatoSDK)
+
             CONFIG += \
                 config_pri_assets \
                 config_pri_source_group1
         } else {
+            INCLUDEPATH += $$quote(${QNX_TARGET}/usr/include/bb/device) \
+                $$quote(${QNX_TARGET}/usr/include/bb/platform) \
+                $$quote(C:/Users/adonai/momentics-workspace/SmaatoSDK/public) \
+                $$quote(${QNX_TARGET}/usr/include/qt4/QtNetwork) \
+                $$quote(${QNX_TARGET}/usr/include/bb/data) \
+                $$quote(${QNX_TARGET}/usr/include/qt4/QtXml) \
+                $$quote(${QNX_TARGET}/usr/include/bb) \
+                $$quote(${QNX_TARGET}/usr/include/bb/system)
+
+            DEPENDPATH += $$quote(${QNX_TARGET}/usr/include/bb/device) \
+                $$quote(${QNX_TARGET}/usr/include/bb/platform) \
+                $$quote(C:/Users/adonai/momentics-workspace/SmaatoSDK/public) \
+                $$quote(${QNX_TARGET}/usr/include/qt4/QtNetwork) \
+                $$quote(${QNX_TARGET}/usr/include/bb/data) \
+                $$quote(${QNX_TARGET}/usr/include/qt4/QtXml) \
+                $$quote(${QNX_TARGET}/usr/include/bb) \
+                $$quote(${QNX_TARGET}/usr/include/bb/system)
+
+            LIBS += -lSmaatoSDKDevice \
+                -lbbdevice \
+                -lQtXml \
+                -lbbpim \
+                -lbb \
+                -lbbsystem \
+                -lbbdata \
+                -lbbplatform \
+                -lQtNetwork
+
+            LIBS += $$quote(-LC:/Users/adonai/Documents/SOMA_SDK_for_BLACKBERRY_V1.1.3/Smaato-SmaatoSDK-BB10-v1.1.3-2014-07-02-A/Smaato-SmaatoSDK-BB10-v1.1.3-2014-07-02-A/SmaatoSDK) \
+                $$quote(-LC:/Users/adonai/momentics-workspace/ProjectGlass) \
+                $$quote(-LC:/Users/adonai/momentics-workspace/SmaatoSDK)
+
+            PRE_TARGETDEPS += $$quote(C:/Users/adonai/Documents/SOMA_SDK_for_BLACKBERRY_V1.1.3/Smaato-SmaatoSDK-BB10-v1.1.3-2014-07-02-A/Smaato-SmaatoSDK-BB10-v1.1.3-2014-07-02-A/SmaatoSDK) \
+                $$quote(C:/Users/adonai/momentics-workspace/ProjectGlass) \
+                $$quote(C:/Users/adonai/momentics-workspace/SmaatoSDK)
+
             CONFIG += \
                 config_pri_assets \
                 config_pri_source_group1
@@ -17,6 +93,46 @@ device {
 
     CONFIG(release, debug|release) {
         !profile {
+            INCLUDEPATH += $$quote(${QNX_TARGET}/usr/include/bb/device) \
+                $$quote(${QNX_TARGET}/usr/include/bb/platform) \
+                $$quote(C:/Users/adonai/Documents/SOMA_SDK_for_BLACKBERRY_V1.1.3/Smaato-SmaatoSDK-BB10-v1.1.3-2014-07-02-A/Smaato-SmaatoSDK-BB10-v1.1.3-2014-07-02-A/SmaatoSDK) \
+                $$quote(C:/Users/adonai/momentics-workspace/ProjectGlass/src/public) \
+                $$quote(C:/Users/adonai/momentics-workspace/SmaatoSDK/public) \
+                $$quote(${QNX_TARGET}/usr/include/qt4/QtNetwork) \
+                $$quote(${QNX_TARGET}/usr/include/bb/data) \
+                $$quote(${QNX_TARGET}/usr/include/qt4/QtXml) \
+                $$quote(${QNX_TARGET}/usr/include/bb) \
+                $$quote(${QNX_TARGET}/usr/include/bb/system)
+
+            DEPENDPATH += $$quote(${QNX_TARGET}/usr/include/bb/device) \
+                $$quote(${QNX_TARGET}/usr/include/bb/platform) \
+                $$quote(C:/Users/adonai/Documents/SOMA_SDK_for_BLACKBERRY_V1.1.3/Smaato-SmaatoSDK-BB10-v1.1.3-2014-07-02-A/Smaato-SmaatoSDK-BB10-v1.1.3-2014-07-02-A/SmaatoSDK) \
+                $$quote(C:/Users/adonai/momentics-workspace/ProjectGlass/src/public) \
+                $$quote(C:/Users/adonai/momentics-workspace/SmaatoSDK/public) \
+                $$quote(${QNX_TARGET}/usr/include/qt4/QtNetwork) \
+                $$quote(${QNX_TARGET}/usr/include/bb/data) \
+                $$quote(${QNX_TARGET}/usr/include/qt4/QtXml) \
+                $$quote(${QNX_TARGET}/usr/include/bb) \
+                $$quote(${QNX_TARGET}/usr/include/bb/system)
+
+            LIBS += -lSmaatoSDKDevice \
+                -lbbdevice \
+                -lQtXml \
+                -lbbpim \
+                -lbb \
+                -lbbsystem \
+                -lbbdata \
+                -lbbplatform \
+                -lQtNetwork
+
+            LIBS += $$quote(-LC:/Users/adonai/Documents/SOMA_SDK_for_BLACKBERRY_V1.1.3/Smaato-SmaatoSDK-BB10-v1.1.3-2014-07-02-A/Smaato-SmaatoSDK-BB10-v1.1.3-2014-07-02-A/SmaatoSDK) \
+                $$quote(-LC:/Users/adonai/momentics-workspace/ProjectGlass) \
+                $$quote(-LC:/Users/adonai/momentics-workspace/SmaatoSDK)
+
+            PRE_TARGETDEPS += $$quote(C:/Users/adonai/Documents/SOMA_SDK_for_BLACKBERRY_V1.1.3/Smaato-SmaatoSDK-BB10-v1.1.3-2014-07-02-A/Smaato-SmaatoSDK-BB10-v1.1.3-2014-07-02-A/SmaatoSDK) \
+                $$quote(C:/Users/adonai/momentics-workspace/ProjectGlass) \
+                $$quote(C:/Users/adonai/momentics-workspace/SmaatoSDK)
+
             CONFIG += \
                 config_pri_assets \
                 config_pri_source_group1
@@ -27,6 +143,46 @@ device {
 simulator {
     CONFIG(debug, debug|release) {
         !profile {
+            INCLUDEPATH += $$quote(${QNX_TARGET}/usr/include/bb/device) \
+                $$quote(${QNX_TARGET}/usr/include/bb/platform) \
+                $$quote(C:/Users/adonai/Documents/SOMA_SDK_for_BLACKBERRY_V1.1.3/Smaato-SmaatoSDK-BB10-v1.1.3-2014-07-02-A/Smaato-SmaatoSDK-BB10-v1.1.3-2014-07-02-A/SmaatoSDK) \
+                $$quote(C:/Users/adonai/momentics-workspace/ProjectGlass/src/public) \
+                $$quote(C:/Users/adonai/momentics-workspace/SmaatoSDK/public) \
+                $$quote(${QNX_TARGET}/usr/include/qt4/QtNetwork) \
+                $$quote(${QNX_TARGET}/usr/include/bb/data) \
+                $$quote(${QNX_TARGET}/usr/include/qt4/QtXml) \
+                $$quote(${QNX_TARGET}/usr/include/bb) \
+                $$quote(${QNX_TARGET}/usr/include/bb/system)
+
+            DEPENDPATH += $$quote(${QNX_TARGET}/usr/include/bb/device) \
+                $$quote(${QNX_TARGET}/usr/include/bb/platform) \
+                $$quote(C:/Users/adonai/Documents/SOMA_SDK_for_BLACKBERRY_V1.1.3/Smaato-SmaatoSDK-BB10-v1.1.3-2014-07-02-A/Smaato-SmaatoSDK-BB10-v1.1.3-2014-07-02-A/SmaatoSDK) \
+                $$quote(C:/Users/adonai/momentics-workspace/ProjectGlass/src/public) \
+                $$quote(C:/Users/adonai/momentics-workspace/SmaatoSDK/public) \
+                $$quote(${QNX_TARGET}/usr/include/qt4/QtNetwork) \
+                $$quote(${QNX_TARGET}/usr/include/bb/data) \
+                $$quote(${QNX_TARGET}/usr/include/qt4/QtXml) \
+                $$quote(${QNX_TARGET}/usr/include/bb) \
+                $$quote(${QNX_TARGET}/usr/include/bb/system)
+
+            LIBS += -lbbdevice \
+                -lQtXml \
+                -lbbpim \
+                -lSmaatoSDKSimulator \
+                -lbb \
+                -lbbsystem \
+                -lbbdata \
+                -lbbplatform \
+                -lQtNetwork
+
+            LIBS += $$quote(-LC:/Users/adonai/Documents/SOMA_SDK_for_BLACKBERRY_V1.1.3/Smaato-SmaatoSDK-BB10-v1.1.3-2014-07-02-A/Smaato-SmaatoSDK-BB10-v1.1.3-2014-07-02-A/SmaatoSDK) \
+                $$quote(-LC:/Users/adonai/momentics-workspace/ProjectGlass) \
+                $$quote(-LC:/Users/adonai/momentics-workspace/SmaatoSDK)
+
+            PRE_TARGETDEPS += $$quote(C:/Users/adonai/Documents/SOMA_SDK_for_BLACKBERRY_V1.1.3/Smaato-SmaatoSDK-BB10-v1.1.3-2014-07-02-A/Smaato-SmaatoSDK-BB10-v1.1.3-2014-07-02-A/SmaatoSDK) \
+                $$quote(C:/Users/adonai/momentics-workspace/ProjectGlass) \
+                $$quote(C:/Users/adonai/momentics-workspace/SmaatoSDK)
+
             CONFIG += \
                 config_pri_assets \
                 config_pri_source_group1
@@ -38,7 +194,6 @@ config_pri_assets {
     OTHER_FILES += \
         $$quote($$BASEDIR/assets/details.qml) \
         $$quote($$BASEDIR/assets/help.qml) \
-        $$quote($$BASEDIR/assets/images/5_content_new.png) \
         $$quote($$BASEDIR/assets/images/5_content_remove.png) \
         $$quote($$BASEDIR/assets/images/all.png) \
         $$quote($$BASEDIR/assets/images/close.png) \
@@ -48,6 +203,8 @@ config_pri_assets {
         $$quote($$BASEDIR/assets/images/home.png) \
         $$quote($$BASEDIR/assets/images/info.png) \
         $$quote($$BASEDIR/assets/images/music.png) \
+        $$quote($$BASEDIR/assets/images/new_bright.png) \
+        $$quote($$BASEDIR/assets/images/new_dark.png) \
         $$quote($$BASEDIR/assets/images/open.png) \
         $$quote($$BASEDIR/assets/images/other.png) \
         $$quote($$BASEDIR/assets/images/pause.png) \
@@ -79,7 +236,12 @@ config_pri_source_group1 {
         $$quote($$BASEDIR/src/DownloadInfo.hpp) \
         $$quote($$BASEDIR/src/DownloadManager.hpp) \
         $$quote($$BASEDIR/src/Settings.hpp) \
-        $$quote($$BASEDIR/src/applicationui.hpp)
+        $$quote($$BASEDIR/src/applicationui.hpp) \
+        $$quote($$BASEDIR/src/public/SSmaatoAPI.h) \
+        $$quote($$BASEDIR/src/public/SSmaatoAd.h) \
+        $$quote($$BASEDIR/src/public/SSmaatoAdView.h) \
+        $$quote($$BASEDIR/src/public/SSmaatoBridge.h) \
+        $$quote($$BASEDIR/src/public/SSmaatoSDKInfo.h)
 }
 
 CONFIG += precompile_header
@@ -93,6 +255,11 @@ lupdate_inclusion {
         $$quote($$BASEDIR/../src/*.cc) \
         $$quote($$BASEDIR/../src/*.cpp) \
         $$quote($$BASEDIR/../src/*.cxx) \
+        $$quote($$BASEDIR/../src/public/*.c) \
+        $$quote($$BASEDIR/../src/public/*.c++) \
+        $$quote($$BASEDIR/../src/public/*.cc) \
+        $$quote($$BASEDIR/../src/public/*.cpp) \
+        $$quote($$BASEDIR/../src/public/*.cxx) \
         $$quote($$BASEDIR/../assets/*.qml) \
         $$quote($$BASEDIR/../assets/*.js) \
         $$quote($$BASEDIR/../assets/*.qs) \

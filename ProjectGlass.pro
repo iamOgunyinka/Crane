@@ -6,5 +6,6 @@ QT  += network xml
 LIBS    += -lbbdata
 LIBS    += -lbbsystem
 LIBS    += -lbbplatform
+LIBS    += -lQtLocationSubset
 
 include(config.pri)

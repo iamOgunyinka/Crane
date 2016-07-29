@@ -1,8 +1,7 @@
 1
-23
+24
 details.qml
 help.qml
-images/5_content_new.png
 images/5_content_remove.png
 images/all.png
 images/close.png
@@ -12,6 +11,8 @@ images/exe.png
 images/home.png
 images/info.png
 images/music.png
+images/new_bright.png
+images/new_dark.png
 images/open.png
 images/other.png
 images/pause.png
