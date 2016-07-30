@@ -132,10 +132,6 @@ TabbedPane
                     }
                 }
                 attachedObjects: [
-                    SSmaatoAPI {
-                        id: ssmaato_api
-                        autoRefreshPeriod: 30
-                    },
                     OrientationHandler {
                         id: orientation_handler
                         onOrientationChanged: {
@@ -184,7 +180,6 @@ TabbedPane
                     topPadding: 20
                     rightPadding: 20
                     leftPadding: 20
-                    id: parety
                     
                     Container {
                         horizontalAlignment: HorizontalAlignment.Center
@@ -192,27 +187,14 @@ TabbedPane
                         SSmaatoAdView {
                             id: adView
                             format: 1
-                            coppa: 0
-                            autoRefreshPeriod: 0
-                            gender: SSmaatoAdView.AdViewSizeNormal
+                            coppa: 1
+                            viewSize: SSmaatoAdView.AdViewSizeNormal
                             preferredWidth: 768
                             preferredHeight: 128
-                            
-                            onCreationCompleted: {
-                                ssmaato_api.adFetchFinished.connect( adView.onAdFetchFinished );
-                                ssmaato_api.adFetchFailed.connect( adView.onAdFetchFailed )
-
-                                ssmaato_api.fetchAd();
-                            }
                         }
-                        /*
-                        */
                         SegmentedControl
                         {
                             id: segmented_filter
-                            onCreationCompleted: {
-                                segmented_filter.selectedIndex = 0; // show completed downloads
-                            }
                             onSelectedIndexChanged: {
                                 model_.changeView( selectedIndex );
                             }
@@ -257,6 +239,7 @@ TabbedPane
                                             var data = list_view.dataModel.data( list_view.selected_download_indexpath );
                                             var filename = data.path
                                             _invoker.open( filename );
+                                            list_view.selected_download_indexpath = 0;
                                         }
                                     }
                                     ActionItem {
@@ -266,6 +249,7 @@ TabbedPane
                                             var data = list_view.dataModel.data( list_view.selected_download_indexpath )
                                             var url_ = data.original_url
                                             list_view.start( url_ );
+                                            list_view.selected_download_indexpath = 0
                                         }
                                     }
                                     ActionItem {
@@ -273,8 +257,9 @@ TabbedPane
                                         imageSource: "asset:///images/pause.png"
                                         onTriggered: {
                                             var data = list_view.dataModel.data( list_view.selected_download_indexpath )
-                                            var url_ = data.original_url
+                                            var url_ = data.original_url;
                                             list_view.stop( url_, true );
+                                            list_view.selected_download_indexpath = 0;
                                         }
                                     }
                                     ActionItem {
@@ -284,6 +269,7 @@ TabbedPane
                                             var data = list_view.dataModel.data( list_view.selected_download_indexpath )
                                             var url_ = data.original_url
                                             list_view.stop( url_, false );
+                                            list_view.selected_download_indexpath = 0;
                                         }
                                     }
                                     ActionItem {
@@ -294,6 +280,7 @@ TabbedPane
                                             var url_ = data.original_url;
                                             list_view.remove_item( url_, false )
                                             list_view.dataModel.removeItem( list_view.selected_download_indexpath );
+                                            list_view.selected_download_indexpath = 0;
                                         }
                                     }
                                     DeleteActionItem {
@@ -302,8 +289,9 @@ TabbedPane
                                         onTriggered: {
                                             var data = list_view.dataModel.data( list_view.selected_download_indexpath )
                                             var url_ = data.original_url;
-                                            list_view.remove_item( url_, true )
+                                            list_view.remove_item( url_, true );
                                             list_view.dataModel.removeItem( list_view.selected_download_indexpath );
+                                            list_view.selected_download_indexpath = 0;
                                         }
                                     }
                                 }

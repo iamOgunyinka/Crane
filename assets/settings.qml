@@ -229,6 +229,7 @@ Page {
                     }
                 }
                 Container {
+                    topMargin: 20
                     Header {
                         title: "Application Settings"
                     }
@@ -250,6 +251,7 @@ Page {
                             ]
                             onSelectedIndexChanged: {
                                 settings.app_theme = app_theme.selectedOption.value
+                                restart_prompt.visible = true
                             }
                             onCreationCompleted: {
                                 switch( settings.app_theme ){
@@ -260,6 +262,14 @@ Page {
                                         app_theme.setSelectedIndex( 1 );
                                         break;
                                 }
+                            }
+                        }
+                        Label {
+                            id: restart_prompt;
+                            text: "Restart application.";
+                            textStyle.color: Color.Red
+                            onCreationCompleted: {
+                                visible = false;
                             }
                         }
                     }

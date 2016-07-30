@@ -65,7 +65,11 @@ namespace CraneDM {
     QVariant CraneDataModel::data( QVariantList const & indexPath )
     {
         if( indexPath.size() == 1 ){
-            QSharedPointer<Information> information = DownloadInfo::DownloadInfoList().at( indexPath.at( 0 ).toInt() );
+            QList<QSharedPointer<Information> > const & download_list = DownloadInfo::DownloadInfoList();
+            if( indexPath.at( 0 ).toInt() >= download_list.size() ){
+                return QVariant();
+            }
+            QSharedPointer<Information> information = download_list.at( indexPath.at( 0 ).toInt() );
             QVariantMap data_to_send;
 
             data_to_send[ "original_url" ] = information->original_url;
@@ -197,6 +201,8 @@ namespace CraneDM {
 
     void CraneFilteredDataModel::removeItem( QVariantList const & indexPath )
     {
+        if( indexPath.isEmpty() ) return;
+
         if( indexPath.size() == 1 ){
             DownloadInfo::DownloadInfoList().removeAll( DownloadInfo::DownloadInfoList().at( indexPath[0].toInt() ) );
         }

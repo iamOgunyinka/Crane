@@ -135,6 +135,8 @@ namespace CraneDM {
     {
         if( DownloadManager::active_download_list.contains( url ) ){
             DownloadComponent *download = DownloadManager::active_download_list.value( url );
+            if( !download ) return;
+
             download->stopDownload();
 
             if( !toPause ) return;
@@ -147,6 +149,7 @@ namespace CraneDM {
 
     void CraneDownloader::removeItem( QString const & url, bool deleteFile )
     {
+        if( url.isEmpty() ) return;
         if( DownloadManager::inactive_downloads.contains( url ) ){
             DownloadManager::inactive_downloads.removeAll( url );
         }
