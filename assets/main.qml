@@ -2,8 +2,6 @@ import bb.cascades 1.2
 import bb.system 1.2
 import bb.data 1.0
 import bb.platform 1.2
-import custom_ad.smaatosdk 1.0
-import custom_ad.smaatoapi 1.0
 
 TabbedPane
 {
@@ -132,21 +130,6 @@ TabbedPane
                     }
                 }
                 attachedObjects: [
-                    OrientationHandler {
-                        id: orientation_handler
-                        onOrientationChanged: {
-                            if( adView.viewSize == SSmaatoAdView.AdViewSizeFullScreenPortrait || 
-                                adView.viewSize == SSmaatoAdView.AdViewSizeFullScreenLandscape )
-                            {
-                                if( orientation == OrientationSupport.orientation.Landscape ){
-                                    adView.viewSize = SSmaatoAdView.AdViewSizeFullScreenLandscape;
-                                } else {
-                                    adView.viewSize = SSmaatoAdView.AdViewSizeFullScreenPortrait;
-                                }
-                            }
-                            adView.updateAd();
-                        }
-                    },
                     Notification {
                         id: notification
                         type: NotificationType.Default
@@ -184,14 +167,6 @@ TabbedPane
                     Container {
                         horizontalAlignment: HorizontalAlignment.Center
                         verticalAlignment: VerticalAlignment.Center
-                        SSmaatoAdView {
-                            id: adView
-                            format: 1
-                            coppa: 1
-                            viewSize: SSmaatoAdView.AdViewSizeNormal
-                            preferredWidth: 768
-                            preferredHeight: 128
-                        }
                         SegmentedControl
                         {
                             id: segmented_filter

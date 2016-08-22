@@ -37,9 +37,9 @@
 		<nature>org.eclipse.cdt.core.cnature</nature>
 		<nature>org.eclipse.cdt.managedbuilder.core.managedBuildNature</nature>
 		<nature>org.eclipse.cdt.managedbuilder.core.ScannerConfigNature</nature>
-		<nature>com.qnx.tools.ide.bbt.core.bbtnature</nature>
 		<nature>org.eclipse.cdt.core.ccnature</nature>
 		<nature>org.eclipse.cdt.qt.core.qtNature</nature>
 		<nature>com.rim.tad.tools.qml.core.qmlNature</nature>
+		<nature>com.qnx.tools.ide.bbt.core.bbtnature</nature>
 	</natures>
 </projectDescription>

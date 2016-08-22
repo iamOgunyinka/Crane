@@ -88,15 +88,15 @@ namespace CraneDM {
         QString             download_directory;
         QTimer              timer;
     public slots:
-        void errorHandler( QString );
         void errorHandler( QNetworkReply::NetworkError );
+        void errorHandler( QString );
         void completionHandler();
         void headFinishedHandler();
         void updateBytesWritten( unsigned int, qint64 );
         void progressStatusHandler( unsigned int, int, double, QString );
         void startDownload();
         void cleanUpOnExit();
-        void stopDownload();
+        void stopDownload( bool reportStopped = true );
         void onFileSizeObtained( quint64 );
 
     signals:

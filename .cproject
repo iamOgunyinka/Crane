@@ -24,7 +24,6 @@
 							<tool id="com.qnx.qcc.tool.compiler.1337291765" name="QCC Compiler" superClass="com.qnx.qcc.tool.compiler">
 								<option id="com.qnx.qcc.option.compiler.optlevel.727217483" name="Optimization Level" superClass="com.qnx.qcc.option.compiler.optlevel" value="com.qnx.qcc.option.compiler.optlevel.0" valueType="enumerated"/>
 								<option id="com.qnx.qcc.option.compiler.includePath.2060892898" name="Include Directories (-I)" superClass="com.qnx.qcc.option.compiler.includePath" valueType="includePath">
-									<listOptionValue builtIn="false" value="C:/Users/adonai/momentics-workspace/SmaatoSDK/public"/>
 									<listOptionValue builtIn="false" value="${QNX_TARGET}/usr/include/bb"/>
 									<listOptionValue builtIn="false" value="${QNX_TARGET}/usr/include/bb/system"/>
 									<listOptionValue builtIn="false" value="${QNX_TARGET}/usr/include/bb/platform"/>
@@ -48,12 +47,6 @@
 									<listOptionValue builtIn="false" value="bbsystem"/>
 									<listOptionValue builtIn="false" value="bb"/>
 									<listOptionValue builtIn="false" value="bbpim"/>
-									<listOptionValue builtIn="false" value="SmaatoSDKDevice"/>
-								</option>
-								<option id="com.qnx.qcc.option.linker.libraryPaths.560191264" name="Library Paths (-L)" superClass="com.qnx.qcc.option.linker.libraryPaths" valueType="libPaths">
-									<listOptionValue builtIn="false" value="C:/Users/adonai/momentics-workspace/SmaatoSDK"/>
-									<listOptionValue builtIn="false" value="C:/Users/adonai/Documents/SOMA_SDK_for_BLACKBERRY_V1.1.3/Smaato-SmaatoSDK-BB10-v1.1.3-2014-07-02-A/Smaato-SmaatoSDK-BB10-v1.1.3-2014-07-02-A/SmaatoSDK"/>
-									<listOptionValue builtIn="false" value="C:/Users/adonai/momentics-workspace/ProjectGlass"/>
 								</option>
 							</tool>
 							<tool id="com.qnx.qcc.tool.archiver.1238221139" name="QCC Archiver" superClass="com.qnx.qcc.tool.archiver"/>
@@ -89,9 +82,6 @@
 							<tool id="com.qnx.qcc.tool.compiler.522895675" name="QCC Compiler" superClass="com.qnx.qcc.tool.compiler">
 								<option id="com.qnx.qcc.option.compiler.optlevel.29633828" name="Optimization Level" superClass="com.qnx.qcc.option.compiler.optlevel" value="com.qnx.qcc.option.compiler.optlevel.0" valueType="enumerated"/>
 								<option id="com.qnx.qcc.option.compiler.includePath.177596876" name="Include Directories (-I)" superClass="com.qnx.qcc.option.compiler.includePath" valueType="includePath">
-									<listOptionValue builtIn="false" value="C:/Users/adonai/momentics-workspace/SmaatoSDK/public"/>
-									<listOptionValue builtIn="false" value="C:/Users/adonai/Documents/SOMA_SDK_for_BLACKBERRY_V1.1.3/Smaato-SmaatoSDK-BB10-v1.1.3-2014-07-02-A/Smaato-SmaatoSDK-BB10-v1.1.3-2014-07-02-A/SmaatoSDK"/>
-									<listOptionValue builtIn="false" value="C:/Users/adonai/momentics-workspace/ProjectGlass/src/public"/>
 									<listOptionValue builtIn="false" value="${QNX_TARGET}/usr/include/bb"/>
 									<listOptionValue builtIn="false" value="${QNX_TARGET}/usr/include/bb/system"/>
 									<listOptionValue builtIn="false" value="${QNX_TARGET}/usr/include/bb/platform"/>
@@ -116,11 +106,6 @@
 									<listOptionValue builtIn="false" value="bb"/>
 									<listOptionValue builtIn="false" value="bbpim"/>
 									<listOptionValue builtIn="false" value="SmaatoSDKDevice"/>
-								</option>
-								<option id="com.qnx.qcc.option.linker.libraryPaths.1333317851" name="Library Paths (-L)" superClass="com.qnx.qcc.option.linker.libraryPaths" valueType="libPaths">
-									<listOptionValue builtIn="false" value="C:/Users/adonai/momentics-workspace/SmaatoSDK"/>
-									<listOptionValue builtIn="false" value="C:/Users/adonai/Documents/SOMA_SDK_for_BLACKBERRY_V1.1.3/Smaato-SmaatoSDK-BB10-v1.1.3-2014-07-02-A/Smaato-SmaatoSDK-BB10-v1.1.3-2014-07-02-A/SmaatoSDK"/>
-									<listOptionValue builtIn="false" value="C:/Users/adonai/momentics-workspace/ProjectGlass"/>
 								</option>
 							</tool>
 							<tool id="com.qnx.qcc.tool.archiver.1539482493" name="QCC Archiver" superClass="com.qnx.qcc.tool.archiver"/>
@@ -156,9 +141,6 @@
 							<tool id="com.qnx.qcc.tool.compiler.1562945907" name="QCC Compiler" superClass="com.qnx.qcc.tool.compiler">
 								<option id="com.qnx.qcc.option.compiler.optlevel.1569134745" name="Optimization Level" superClass="com.qnx.qcc.option.compiler.optlevel" value="com.qnx.qcc.option.compiler.optlevel.0" valueType="enumerated"/>
 								<option id="com.qnx.qcc.option.compiler.includePath.1966810012" name="Include Directories (-I)" superClass="com.qnx.qcc.option.compiler.includePath" valueType="includePath">
-									<listOptionValue builtIn="false" value="C:/Users/adonai/momentics-workspace/SmaatoSDK/public"/>
-									<listOptionValue builtIn="false" value="C:/Users/adonai/Documents/SOMA_SDK_for_BLACKBERRY_V1.1.3/Smaato-SmaatoSDK-BB10-v1.1.3-2014-07-02-A/Smaato-SmaatoSDK-BB10-v1.1.3-2014-07-02-A/SmaatoSDK"/>
-									<listOptionValue builtIn="false" value="C:/Users/adonai/momentics-workspace/ProjectGlass/src/public"/>
 									<listOptionValue builtIn="false" value="${QNX_TARGET}/usr/include/bb"/>
 									<listOptionValue builtIn="false" value="${QNX_TARGET}/usr/include/bb/system"/>
 									<listOptionValue builtIn="false" value="${QNX_TARGET}/usr/include/bb/platform"/>
@@ -183,11 +165,6 @@
 									<listOptionValue builtIn="false" value="bb"/>
 									<listOptionValue builtIn="false" value="bbpim"/>
 									<listOptionValue builtIn="false" value="SmaatoSDKDevice"/>
-								</option>
-								<option id="com.qnx.qcc.option.linker.libraryPaths.495030132" name="Library Paths (-L)" superClass="com.qnx.qcc.option.linker.libraryPaths" valueType="libPaths">
-									<listOptionValue builtIn="false" value="C:/Users/adonai/momentics-workspace/SmaatoSDK"/>
-									<listOptionValue builtIn="false" value="C:/Users/adonai/Documents/SOMA_SDK_for_BLACKBERRY_V1.1.3/Smaato-SmaatoSDK-BB10-v1.1.3-2014-07-02-A/Smaato-SmaatoSDK-BB10-v1.1.3-2014-07-02-A/SmaatoSDK"/>
-									<listOptionValue builtIn="false" value="C:/Users/adonai/momentics-workspace/ProjectGlass"/>
 								</option>
 							</tool>
 							<tool id="com.qnx.qcc.tool.archiver.1825736134" name="QCC Archiver" superClass="com.qnx.qcc.tool.archiver"/>
@@ -223,9 +200,6 @@
 							<tool id="com.qnx.qcc.tool.compiler.1353720910" name="QCC Compiler" superClass="com.qnx.qcc.tool.compiler">
 								<option id="com.qnx.qcc.option.compiler.optlevel.1706905799" name="Optimization Level" superClass="com.qnx.qcc.option.compiler.optlevel" value="com.qnx.qcc.option.compiler.optlevel.0" valueType="enumerated"/>
 								<option id="com.qnx.qcc.option.compiler.includePath.1957646546" name="Include Directories (-I)" superClass="com.qnx.qcc.option.compiler.includePath" valueType="includePath">
-									<listOptionValue builtIn="false" value="C:/Users/adonai/momentics-workspace/SmaatoSDK/public"/>
-									<listOptionValue builtIn="false" value="C:/Users/adonai/Documents/SOMA_SDK_for_BLACKBERRY_V1.1.3/Smaato-SmaatoSDK-BB10-v1.1.3-2014-07-02-A/Smaato-SmaatoSDK-BB10-v1.1.3-2014-07-02-A/SmaatoSDK"/>
-									<listOptionValue builtIn="false" value="C:/Users/adonai/momentics-workspace/ProjectGlass/src/public"/>
 									<listOptionValue builtIn="false" value="${QNX_TARGET}/usr/include/bb"/>
 									<listOptionValue builtIn="false" value="${QNX_TARGET}/usr/include/bb/system"/>
 									<listOptionValue builtIn="false" value="${QNX_TARGET}/usr/include/bb/platform"/>
@@ -250,11 +224,6 @@
 									<listOptionValue builtIn="false" value="bb"/>
 									<listOptionValue builtIn="false" value="bbpim"/>
 									<listOptionValue builtIn="false" value="SmaatoSDKSimulator"/>
-								</option>
-								<option id="com.qnx.qcc.option.linker.libraryPaths.1638254390" name="Library Paths (-L)" superClass="com.qnx.qcc.option.linker.libraryPaths" valueType="libPaths">
-									<listOptionValue builtIn="false" value="C:/Users/adonai/momentics-workspace/SmaatoSDK"/>
-									<listOptionValue builtIn="false" value="C:/Users/adonai/Documents/SOMA_SDK_for_BLACKBERRY_V1.1.3/Smaato-SmaatoSDK-BB10-v1.1.3-2014-07-02-A/Smaato-SmaatoSDK-BB10-v1.1.3-2014-07-02-A/SmaatoSDK"/>
-									<listOptionValue builtIn="false" value="C:/Users/adonai/momentics-workspace/ProjectGlass"/>
 								</option>
 							</tool>
 							<tool id="com.qnx.qcc.tool.archiver.1512925827" name="QCC Archiver" superClass="com.qnx.qcc.tool.archiver"/>

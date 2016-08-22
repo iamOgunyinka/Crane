@@ -15,7 +15,8 @@
 namespace CraneDM {
     Settings::Settings( QObject *parent ): QObject( parent ),
         max_download( 2 ), max_thread( 1 ), app_notify( 0 ),
-        autocopy_from_clipboard( 0 ), download_directory(),
+        autocopy_from_clipboard( 0 ),
+        download_directory( "file:///accounts/1000/shared/downloads/" ),
         app_theme( "bright" ), filename( "data/app_settings.dat" )
     {
         if( !QFile::exists( filename ) ){

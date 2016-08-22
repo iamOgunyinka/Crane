@@ -13,7 +13,7 @@
 #include <bb/system/Clipboard>
 
 namespace CraneDM {
-    class ApplicationData : public QObject
+    class ApplicationData: public QObject
     {
         Q_OBJECT
     public:

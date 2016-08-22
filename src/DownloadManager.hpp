@@ -40,8 +40,8 @@ namespace CraneDM {
     public:
         static QMap<QString, DownloadComponent*>   active_download_list;
         static QList<QString>                      inactive_downloads;
-        static int                                 max_number_of_downloads;
-        static int                                 max_number_of_threads;
+        static unsigned int                        max_number_of_downloads;
+        static unsigned int                        max_number_of_threads;
     public:
         DownloadManager( QObject *parent = NULL );
         virtual ~DownloadManager();

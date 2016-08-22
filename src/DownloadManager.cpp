@@ -13,11 +13,11 @@
 #include <src/DownloadInfo.hpp>
 
 namespace CraneDM {
-    // static data initialized
+
     QMap<QString, DownloadComponent*>   DownloadManager::active_download_list;
     QList<QString>  DownloadManager::inactive_downloads;
-    int             DownloadManager::max_number_of_downloads = 2;
-    int             DownloadManager::max_number_of_threads = 2;
+    unsigned int    DownloadManager::max_number_of_downloads = 2;
+    unsigned int    DownloadManager::max_number_of_threads = 2;
 
     DownloadManager::DownloadManager( QObject *parent ): QObject( parent )
     {
@@ -25,11 +25,11 @@ namespace CraneDM {
 
     DownloadManager::~DownloadManager()
     {
-
     }
 
     void DownloadManager::errorHandler( QString message, QString url )
     {
+
         emit error( message, url );
     }
 
@@ -80,7 +80,6 @@ namespace CraneDM {
     }
 
     CraneDownloader::~CraneDownloader(){ }
-
     void CraneDownloader::addNewUrlWithManager( QString const & address, QString location, DownloadManager *dm )
     {
         QString new_uri_address =  QUrl::fromUserInput( address ).toString();

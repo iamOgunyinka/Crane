@@ -9,16 +9,11 @@
 #include "Settings.hpp"
 #include "DownloadManager.hpp"
 #include "CraneDataModel.hpp"
-#include "SSmaatoAdView.h"
-#include "SSmaatoAPI.h"
-#include "SSmaatoSDKInfo.h"
 
 namespace CraneDM {
-//    using namespace bb::cascades;
     using namespace bb::system;
 
-    ApplicationUI::ApplicationUI() :
-                        QObject()
+    ApplicationUI::ApplicationUI(): QObject()
     {
         // prepare the localization
         m_pTranslator =     new QTranslator(this);
@@ -72,9 +67,6 @@ namespace CraneDM {
         QObject::connect( m_pDownloadManager, SIGNAL( progressed( QString ) ), filtered_model,
                 SLOT( progressHandler( QString ) ) );
         QObject::connect( m_pDownloadManager, SIGNAL( downloadStarted( QString ) ), filtered_model, SLOT( refreshView( QString ) ) );
-
-        qmlRegisterType<SSmaatoAdView>( "custom_ad.smaatosdk", 1, 0, "SSmaatoAdView" );
-        qmlRegisterType<SSmaatoAPI>( "custom_ad.smaatoapi", 1, 0, "SSmaatoAPI" );
 
         QmlDocument *qml = QmlDocument::create( "asset:///main.qml" ).parent(this);
         qml->setContextProperty( "model_", filtered_model );

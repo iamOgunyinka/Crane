@@ -2,7 +2,7 @@
  * Settings.hpp
  *
  *  Created on: Jun 16, 2016
- *      Author: adonai
+ *      Author: Joshua
  */
 
 #ifndef SETTINGS_HPP_

@@ -1,5 +1,4 @@
 import bb.cascades 1.2
-import custom_ad.smaatosdk 1.0
 
 Page {
     property variant data;
@@ -27,15 +26,6 @@ Page {
             rightMargin: 20
             
             Container {
-                SSmaatoAdView {
-                    id: adView
-                    coppa: 1
-                    format: 1
-                    viewSize: SSmaatoAdView.AdViewSizeNormal
-                    preferredWidth: 768
-                    preferredHeight: 128
-                }
-                Divider {}
                 Container {
                     Label {
                         text: "Filename"
